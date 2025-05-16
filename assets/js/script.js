@@ -49,7 +49,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // Custom select functionality
   const select = document.querySelector("[data-select]");
   const selectItems = document.querySelectorAll("[data-select-item]");
-  const selectValue = document.querySelector("[data-selecct-value]");
+  const selectValue = document.querySelector("[data-select-value]");
   const filterBtn = document.querySelectorAll("[data-filter-btn]");
 
   if (select) {
@@ -61,7 +61,9 @@ document.addEventListener("DOMContentLoaded", function () {
   const filterItems = document.querySelectorAll("[data-filter-item]");
   const filterFunc = function (selectedValue) {
     filterItems.forEach(item => {
-      if (selectedValue === "all" || selectedValue === item.dataset.category) {
+      if (selectedValue === "all") {
+        item.classList.add("active");
+      } else if (selectedValue === item.dataset.category) {
         item.classList.add("active");
       } else {
         item.classList.remove("active");
