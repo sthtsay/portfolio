@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Function to fetch and render content
   function fetchAndRenderContent() {
-    fetch('content.json')
+    fetch('https://portfolio-505u.onrender.com')
       .then(response => response.json())
       .then(content => {
         if (loadingDiv) loadingDiv.remove();
