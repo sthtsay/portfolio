@@ -17,6 +17,16 @@ document.addEventListener("DOMContentLoaded", function () {
   loadingDiv.textContent = 'Loading content...';
   if (main) main.prepend(loadingDiv);
 
+  // Ensure skeleton is visible and real projects are hidden at start
+  const skeletonList = document.getElementById('skeleton-list');
+  const realProjects = document.querySelectorAll('.real-projects');
+  if (skeletonList) skeletonList.style.display = 'block';
+  if (realProjects.length > 0) {
+    realProjects.forEach(list => {
+      list.style.display = 'none';
+    });
+  }
+
   // Function to fetch and render content
   function fetchAndRenderContent() {
     fetch(BACKEND_URL + '/content.json')
@@ -184,12 +194,10 @@ document.addEventListener("DOMContentLoaded", function () {
         const skeletonList = document.getElementById('skeleton-list');
         const realProjects = document.querySelectorAll('.real-projects');
         if (skeletonList && realProjects.length > 0) {
-          setTimeout(() => {
-            skeletonList.style.display = 'none';
-            realProjects.forEach(list => {
-              list.style.display = '';
-            });
-          }, 500); // shorter delay, after content is rendered
+          skeletonList.style.display = 'none';
+          realProjects.forEach(list => {
+            list.style.display = '';
+          });
         }
       })
       .catch(() => {
