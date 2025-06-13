@@ -139,6 +139,58 @@ document.addEventListener("DOMContentLoaded", function () {
             `).join('');
           }
         });
+
+        // --- FILTER LOGIC: re-initialize after rendering projects ---
+        const filterItems = document.querySelectorAll("[data-filter-item]");
+        const filterFunc = function (selectedValue) {
+          const normalizedValue = selectedValue.trim().toLowerCase();
+          filterItems.forEach(item => {
+            const itemCategory = (item.dataset.category || '').trim().toLowerCase();
+            if (normalizedValue === "all") {
+              item.classList.add("active");
+            } else if (normalizedValue === itemCategory) {
+              item.classList.add("active");
+            } else {
+              item.classList.remove("active");
+            }
+          });
+        };
+        // Attach filter button listeners again (in case they were lost)
+        const filterBtn = document.querySelectorAll("[data-filter-btn]");
+        const select = document.querySelector("[data-select]");
+        const selectItems = document.querySelectorAll("[data-select-item]");
+        const selectValue = document.querySelector("[data-select-value]");
+        let lastClickedBtn = filterBtn[0];
+        filterBtn.forEach(btn => {
+          btn.onclick = function () {
+            const selectedValue = this.innerText.toLowerCase();
+            if (selectValue) selectValue.innerText = this.innerText;
+            filterFunc(selectedValue);
+            if (lastClickedBtn) lastClickedBtn.classList.remove("active");
+            this.classList.add("active");
+            lastClickedBtn = this;
+          };
+        });
+        selectItems.forEach(item => {
+          item.onclick = function () {
+            const selectedValue = this.innerText.toLowerCase();
+            if (selectValue) selectValue.innerText = this.innerText;
+            if (select) elementToggleFunc(select);
+            filterFunc(selectedValue);
+          };
+        });
+
+        // --- SKELETON LOADER: hide after real projects are rendered ---
+        const skeletonList = document.getElementById('skeleton-list');
+        const realProjects = document.querySelectorAll('.real-projects');
+        if (skeletonList && realProjects.length > 0) {
+          setTimeout(() => {
+            skeletonList.style.display = 'none';
+            realProjects.forEach(list => {
+              list.style.display = '';
+            });
+          }, 500); // shorter delay, after content is rendered
+        }
       })
       .catch(() => {
         if (loadingDiv) loadingDiv.textContent = 'Failed to load content. Please check your content.json.';
