@@ -214,10 +214,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const filterItems = document.querySelectorAll("[data-filter-item]");
   const filterFunc = function (selectedValue) {
+    const normalizedValue = selectedValue.trim().toLowerCase();
     filterItems.forEach(item => {
-      if (selectedValue === "all") {
+      const itemCategory = (item.dataset.category || '').trim().toLowerCase();
+      if (normalizedValue === "all") {
         item.classList.add("active");
-      } else if (selectedValue === item.dataset.category) {
+      } else if (normalizedValue === itemCategory) {
         item.classList.add("active");
       } else {
         item.classList.remove("active");
