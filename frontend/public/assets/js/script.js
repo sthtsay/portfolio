@@ -191,8 +191,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         // --- SKELETON LOADER: hide after real projects are rendered ---
-        const skeletonList = document.getElementById('skeleton-list');
-        const realProjects = document.querySelectorAll('.real-projects');
         if (skeletonList && realProjects.length > 0) {
           skeletonList.style.display = 'none';
           realProjects.forEach(list => {
