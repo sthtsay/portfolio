@@ -1,0 +1,153 @@
+{
+  "about": {
+    "name": "Yohannes Mesfin ",
+    "title": "Quality Assurance Engineer",
+    "description": [
+      "I'm an IT professional who transforms technological challenges into efficient solutions. With a strong foundation from Bonga University, I specialize in optimizing systems and enhancing user experiences. My journey began with a fascination for technology's rapid evolution, driving me to develop expertise in IT support, system troubleshooting, and leadership through hands-on projects.",
+      "Even though Python wasn't part of my coursework, I took the initiative to learn it through online resources. This self-driven learning expanded my skill set and deepened my love for technology, enabling me to tackle dynamic challenges in my career."
+    ]
+  },
+  "services": [
+    {
+      "icon": "icon-it-support.png",
+      "title": "IT Support",
+      "text": "Providing reliable IT support services, including troubleshooting, system maintenance, and ensuring seamless technology operations."
+    },
+    {
+      "icon": "icon-documentation.png",
+      "title": "Documentation Preparation",
+      "text": "Crafting clear and detailed documentation to support technical processes, user manuals, and project workflows."
+    },
+    {
+      "icon": "icon-problem-solving.png",
+      "title": "Problem Solving",
+      "text": "Applying analytical skills and innovative solutions to resolve technical challenges and optimize system efficiency."
+    },
+    {
+      "icon": "icon-programming.png",
+      "title": "Programming",
+      "text": "Developing high-quality software solutions using various programming languages to meet client and project needs."
+    }
+  ],
+  "testimonials": [
+    {
+      "avatar": "avatar-1.png",
+      "name": "Michael Melaku",
+      "text": "Yohannes is an outstanding IT professional. He has a strong technical background and a real passion for technology. He has managed our IT operations with great skill and has also taken on leadership responsibilities, guiding our team with ease. His ability to solve problems and his dedication to continuous learning make him a valuable member of our team. I'm confident Yohannes will keep excelling in his career."
+    },
+    {
+      "avatar": "tinbit.png",
+      "name": "Tinbit Abebe",
+      "text": "Working with Yohannes has been a great experience. He's very knowledgeable, especially in IT support and mobile app testing. Even though he was new to app testing, he quickly took charge and led the team to success. Yohannes is always willing to help and share his knowledge, and his passion for technology is inspiring."
+    },
+    {
+      "avatar": "avatar-3.png",
+      "name": "Sosina Tegegn",
+      "text": "I've known Yohannes since our time at Bonga University. He was always passionate about technology and went beyond his coursework to learn more. He led our graduation project with strong leadership and problem-solving skills. Yohannes also managed the university's computer systems, ensuring everything worked smoothly. His drive to learn and dedication were always clear, and it's no surprise to see how far he's come in his career."
+    },
+    {
+      "avatar": "avatar-4.png",
+      "name": "Habtewold Desta",
+      "text": "Yohannes was an excellent student at Bonga University. He had a strong interest in technology and showed great leadership in his graduation project. Even when faced with challenges, he took the initiative to learn on his own. It's been exciting to see him grow into a skilled professional, and I have no doubt he will continue to succeed."
+    }
+  ],
+  "certificates": [
+    {
+      "logo": "google.png",
+      "alt": "Google logo"
+    },
+    {
+      "logo": "aau.png",
+      "alt": "Addis Ababa University logo"
+    },
+    {
+      "logo": "Bonga.png",
+      "alt": "Bonga logo"
+    },
+    {
+      "logo": "MTF.png",
+      "alt": "MTF logo"
+    }
+  ],
+  "education": [
+    {
+      "school": "Bonga University",
+      "years": "2019 — 2023",
+      "text": "Developed a strong IT foundation, earning a GPA of 3.56, and gained key leadership and technical skills by leading a graduation project and managing the university's computer systems"
+    },
+    {
+      "school": "Ethio National School",
+      "years": "2015 — 2019",
+      "text": "Developed an interest in technology by participating in the coding club and excelling in computer science courses. I also took the initiative to learn programming through online resources and worked on personal tech projects."
+    }
+  ],
+  "experience": [
+    {
+      "title": "Quality Assurance Engineer",
+      "company": "Haron Computers",
+      "years": "April 2025 — Present",
+      "text": "I test systems and applications to make sure they work smoothly across different platforms. I also write clear test cases and user guides, and work with the team to find and fix problems before release."
+    },
+    {
+      "title": "Business Analyst",
+      "company": "Two F Capital",
+      "years": "February 2025 — April 2025",
+      "text": "I worked with teams to understand business needs and turned them into clear technical plans. I also created process flows, documentation, and supported testing to make sure everything worked as expected."
+    },
+    {
+      "title": "Quality Assurance & Quality Controller",
+      "company": "Matrix Information Technologies",
+      "years": "August 2024 — February 2025",
+      "text": "I tested software and systems to make sure they were working properly and were easy to use. I also created helpful documentation and worked closely with the team to fix issues before release."
+    },
+    {
+      "title": "Mobile Application Tester",
+      "company": "Forward Logistics Technologies",
+      "years": "May 2024 — August 2024",
+      "text": "I tested mobile apps to check for bugs and improve user experience. I also wrote simple user guides to help people use the apps more easily."
+    },
+    {
+      "title": "IT Officer",
+      "company": "Ethiopian Overseas Employment Agencies Federation",
+      "years": "Dec 2023 – Mar 2024",
+      "text": "I managed and maintained IT systems, helped solve technical issues, and worked on improving overall system performance and efficiency."
+    }
+  ],
+  "skills": [
+    {
+      "name": "Problem Solving",
+      "value": 90
+    },
+    {
+      "name": "System Management",
+      "value": 85
+    },
+    {
+      "name": "Documentation",
+      "value": 80
+    }
+  ],
+  "projects": [
+    {
+      "title": "Simple Python Calculator",
+      "category": "Python Development",
+      "type": "python projects",
+      "image": "calculator-project.png",
+      "alt": "Calculator Project Image"
+    },
+    {
+      "title": "Password Generator",
+      "category": "Web Development",
+      "type": "website projects",
+      "image": "password-generate-project.png",
+      "alt": "Password Generator Project Image"
+    },
+    {
+      "title": "To-Do List",
+      "category": "Java Development",
+      "type": "java projects",
+      "image": "todolist-project.png",
+      "alt": "To-Do List Project Image"
+    }
+  ]
+}
