@@ -147,15 +147,23 @@ document.addEventListener("DOMContentLoaded", function () {
   fetchAndRenderContent();
 
   // Real-time updates with socket.io
-  const script = document.createElement('script');
-  script.src = '/socket.io/socket.io.js';
-  script.onload = function() {
-    const socket = io();
-    socket.on('content-updated', () => {
-      fetchAndRenderContent();
-    });
-  };
-  document.head.appendChild(script);
+  const BACKEND_URL = 'https://your-backend.onrender.com'; // <-- set your backend URL here
+
+const script = document.createElement('script');
+script.src = BACKEND_URL + '/socket.io/socket.io.js';
+script.onload = function() {
+  const socket = io(BACKEND_URL);
+  socket.on('content-updated', () => {
+    fetchAndRenderContent();
+  });
+};
+document.head.appendChild(script);
+
+// Also update fetchAndRenderContent to use BACKEND_URL for content.json:
+function fetchAndRenderContent() {
+  fetch(BACKEND_URL + '/content.json')
+    // ... rest of your code
+}
 
   // Sidebar toggle functionality
   const sidebar = document.querySelector("[data-sidebar]");
