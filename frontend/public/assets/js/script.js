@@ -18,8 +18,8 @@ document.addEventListener("DOMContentLoaded", function () {
   if (main) main.prepend(loadingDiv);
 
   // Ensure skeleton is visible and real projects are hidden at start
-  const skeletonList = document.getElementById('skeleton-list');
-  const realProjects = document.querySelectorAll('.real-projects');
+  let skeletonList = document.getElementById('skeleton-list');
+  let realProjects = document.querySelectorAll('.real-projects');
   if (skeletonList) skeletonList.style.display = 'block';
   if (realProjects.length > 0) {
     realProjects.forEach(list => {
