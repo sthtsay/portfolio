@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", function () {
   if (main) main.prepend(loadingDiv);
 
   // Backend URL for API and socket.io
-  const BACKEND_URL = 'https://portfolio-505u.onrender.com';
+const BACKEND_URL = 'https://portfolio-505u.onrender.com';
 
   // Function to fetch and render content
   function fetchAndRenderContent() {
