@@ -218,7 +218,7 @@
 
     // Load content.json and render forms
     let content = {};
-    fetch('content.json')
+    fetch('https://portfolio-505u.onrender.com/content.json')
       .then(r => r.json())
       .then(data => {
         content = data;
@@ -509,7 +509,7 @@
       }));
       // Send to backend
       const token = prompt('Enter admin token:');
-      fetch('/api/update-content', {
+      fetch('https://portfolio-505u.onrender.com/api/update-content', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

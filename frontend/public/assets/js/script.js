@@ -14,9 +14,12 @@ document.addEventListener("DOMContentLoaded", function () {
   loadingDiv.textContent = 'Loading content...';
   if (main) main.prepend(loadingDiv);
 
+  // Backend URL for API and socket.io
+  const BACKEND_URL = 'https://portfolio-505u.onrender.com';
+
   // Function to fetch and render content
   function fetchAndRenderContent() {
-    fetch('content.json')
+    fetch(BACKEND_URL + '/content.json')
       .then(response => response.json())
       .then(content => {
         if (loadingDiv) loadingDiv.remove();
@@ -148,9 +151,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Real-time updates with socket.io
   const script = document.createElement('script');
-  script.src = '/socket.io/socket.io.js';
+  script.src = BACKEND_URL + '/socket.io/socket.io.js';
   script.onload = function() {
-    const socket = io();
+    const socket = io(BACKEND_URL);
     socket.on('content-updated', () => {
       fetchAndRenderContent();
     });

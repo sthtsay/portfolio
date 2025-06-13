@@ -10,7 +10,7 @@ const server = http.createServer(app);
 const io = new Server(server);
 const PORT = 3000;
 const CONTENT_PATH = path.join(__dirname, 'content.json');
-const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'changeme'; // Set a strong token in production
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'YohiMes2024.@&'; // Set a strong token in production
 
 app.use(cors());
 app.use(express.json({ limit: '2mb' }));
