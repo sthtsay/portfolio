@@ -191,6 +191,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         // --- SKELETON LOADER: hide after real projects are rendered ---
+        // (no redeclaration, just use the variables)
         if (skeletonList && realProjects.length > 0) {
           skeletonList.style.display = 'none';
           realProjects.forEach(list => {
@@ -343,8 +344,7 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   // Skeleton Loader for Portfolio Section
-  const skeletonList = document.getElementById('skeleton-list');
-  const realProjects = document.querySelectorAll('.real-projects');
+  // (no redeclaration, just use the variables)
   if (skeletonList && realProjects.length > 0) {
     setTimeout(() => {
       skeletonList.style.display = 'none';
