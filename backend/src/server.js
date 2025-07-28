@@ -15,12 +15,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: [
-      'http://localhost:3000',
-      'http://localhost:5173',
-      'https://yohannesweb.netlify.app',
-      'https://portfolio-505u.onrender.com'
-    ],
+    origin: '*', // Allow all origins
     methods: ['GET', 'POST'],
     credentials: true
   }
@@ -55,16 +50,8 @@ const uploadLimiter = rateLimit({
 });
 app.use('/api/upload', uploadLimiter);
 
-// Enable CORS for specific origins
-app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'http://localhost:5173',
-    'https://yohannesweb.netlify.app',
-    'https://portfolio-505u.onrender.com'
-  ],
-  credentials: true
-}));
+// Enable CORS for all origins
+app.use(cors());
 
 // Logging requests
 app.use(morgan('dev')); // Logs request info to the console
