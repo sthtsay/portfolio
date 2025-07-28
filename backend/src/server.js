@@ -40,7 +40,7 @@ const checkAdminToken = (req, res, next) => {
 };
 
 // Apply Helmet for basic security
-app.use(helmet({ crossOriginResourcePolicy: false }));
+app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 
 // Rate limiting to avoid abuse on upload endpoint
 const uploadLimiter = rateLimit({
