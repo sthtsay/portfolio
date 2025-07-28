@@ -77,23 +77,34 @@ function createImageUploadInput(name, currentImagePath) {
 
   const preview = document.createElement('img');
   preview.src = currentImagePath.startsWith('uploads/') ? `${API_URL}/${currentImagePath}` : `./assets/images/${currentImagePath}`;
-  preview.style.width = '100px';
-  preview.style.height = 'auto';
-  preview.style.marginBottom = '10px';
-  preview.style.display = 'block';
+  preview.className = 'image-preview';
   container.appendChild(preview);
 
+  const fileInputId = `file-input-${name}`;
   const fileInput = document.createElement('input');
   fileInput.type = 'file';
   fileInput.accept = 'image/*';
+  fileInput.id = fileInputId;
+  fileInput.style.display = 'none'; // Hide the default input
+
+  const fileInputLabel = document.createElement('label');
+  fileInputLabel.htmlFor = fileInputId;
+  fileInputLabel.className = 'file-input-label';
+  fileInputLabel.textContent = 'Choose File';
+  container.appendChild(fileInputLabel);
+
   fileInput.onchange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    // Show selected file name
+    fileInputLabel.textContent = file.name;
 
     if (!adminToken) {
       const token = await requestAdminToken();
       if (!token) {
         alert('Admin token is required to upload images.');
+        fileInputLabel.textContent = 'Choose File';
         return;
       }
     }

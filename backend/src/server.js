@@ -22,7 +22,7 @@ const io = new Server(server, {
   }
 });
 const PORT = process.env.PORT || 3000;
-const CONTENT_PATH = path.join(__dirname, 'content.json');
+const CONTENT_PATH = path.join(__dirname, '..', 'content.json');
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN;
 
 if (!ADMIN_TOKEN) {
@@ -49,8 +49,8 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json({ limit: '2mb' }));
-app.use(express.static(__dirname));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use(express.static(path.join(__dirname, '..', '..', 'frontend', 'public')));
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 // Multer storage configuration
 const storage = multer.diskStorage({
