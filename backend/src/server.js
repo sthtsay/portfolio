@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const fs = require('fs');
+const fs = require('fs').promises; // Using promises for file writing
 const path = require('path');
 const cors = require('cors');
 const http = require('http');
@@ -112,7 +112,7 @@ app.get('/content.json', (req, res) => {
 });
 
 // Endpoint to update content.json (protected)
-app.post('/api/update-content', checkAdminToken, (req, res) => {
+app.post('/api/update-content', checkAdminToken, async (req, res) => {
   const { error } = contentSchema.validate(req.body);
   if (error) {
     return res.status(400).json({ error: error.details[0].message });
@@ -120,22 +120,37 @@ app.post('/api/update-content', checkAdminToken, (req, res) => {
 
   const content = req.body;
 
-  // Write the new content to content.json
-  fs.writeFile(CONTENT_PATH, JSON.stringify(content, null, 2), (err) => {
-    if (err) return res.status(500).json({ error: 'Failed to write file' });
+  try {
+    // Write the new content to content.json
+    await fs.writeFile(CONTENT_PATH, JSON.stringify(content, null, 2));
     
     // Emit WebSocket event to notify clients
     io.emit('content-updated', { message: 'Content has been updated. Please refresh.' });
     res.json({ success: true });
-  });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to write file' });
+  }
 });
 
 // WebSocket connections handling
 io.on('connection', (socket) => {
   console.log('A user connected');
+  
   socket.on('disconnect', () => {
     console.log('User disconnected');
   });
+
+  socket.on('reconnect', () => {
+    console.log('A user reconnected');
+  });
+});
+
+// Error handler for multer file upload
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({ error: err.message });
+  }
+  next(err);
 });
 
 // General error handler
@@ -143,6 +158,18 @@ app.use((err, req, res, next) => {
   console.error(err.stack); // Log the error for debugging
   res.status(500).json({ error: 'Something went wrong. Please try again later.' });
 });
+
+// Graceful shutdown
+const shutdown = () => {
+  console.log('Gracefully shutting down...');
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
+};
+
+process.on('SIGINT', shutdown); // For Ctrl + C
+process.on('SIGTERM', shutdown); // For termination signal
 
 // Start the server
 server.listen(PORT, () => {
