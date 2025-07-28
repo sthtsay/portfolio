@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portfolio Admin Panel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="admin-container">
+    <h1>Portfolio Admin Panel</h1>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="about">About</button>
+      <button class="tab-btn" data-tab="services">Services</button>
+      <button class="tab-btn" data-tab="projects">Projects</button>
+      <button class="tab-btn" data-tab="testimonials">Testimonials</button>
+      <button class="tab-btn" data-tab="certificates">Certificates</button>
+      <button class="tab-btn" data-tab="education">Education</button>
+      <button class="tab-btn" data-tab="experience">Experience</button>
+      <button class="tab-btn" data-tab="skills">Skills</button>
+    </div>
+    <form id="admin-form">
+      <div class="tab-content active" id="tab-about"></div>
+      <div class="tab-content" id="tab-services"></div>
+      <div class="tab-content" id="tab-projects"></div>
+      <div class="tab-content" id="tab-testimonials"></div>
+      <div class="tab-content" id="tab-certificates"></div>
+      <div class="tab-content" id="tab-education"></div>
+      <div class="tab-content" id="tab-experience"></div>
+      <div class="tab-content" id="tab-skills"></div>
+      <button type="button" class="save-btn" id="save-btn">Save Changes</button>
+      <div class="msg" id="msg"></div>
+    </form>
+  </div>
+
+  <!-- Token Modal -->
+  <div id="token-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+      <h2>Enter Admin Token</h2>
+      <p>Please provide the admin token to proceed.</p>
+      <input type="password" id="token-input" placeholder="Admin Token">
+      <div class="modal-actions">
+        <button id="token-submit-btn">Submit</button>
+        <button id="token-cancel-btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

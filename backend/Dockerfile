@@ -11,7 +11,9 @@ COPY package*.json ./
 RUN npm install --production
 
 # Copy the rest of the app
-COPY . .
+COPY src ./src
+COPY content.json .
+COPY uploads ./uploads
 
 # Expose port (default 3000, can be overridden)
 EXPOSE 3000

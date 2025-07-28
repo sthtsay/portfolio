@@ -3,6 +3,16 @@ const BACKEND_URL = 'https://portfolio-505u.onrender.com';
 
 'use strict';
 
+// Function to get the correct image URL
+function getImageUrl(path) {
+  if (!path) return ''; // Return empty string if path is not provided
+  if (path.startsWith('uploads/')) {
+    return `${BACKEND_URL}/${path}`;
+  }
+  return `./assets/images/${path}`;
+}
+
+
 document.addEventListener("DOMContentLoaded", function () {
   // Utility function to toggle element's active class
   const elementToggleFunc = function (elem) {
@@ -49,7 +59,7 @@ document.addEventListener("DOMContentLoaded", function () {
           document.getElementById('service-list').innerHTML = content.services.map(service => `
             <li class="service-item">
               <div class="service-icon-box">
-                <img src="./assets/images/${service.icon}" alt="${service.title} icon" width="70" />
+                <img src="${getImageUrl(service.icon)}" alt="${service.title} icon" width="70" />
               </div>
               <div class="service-content-box">
                 <h4 class="h4 service-item-title">${service.title}</h4>
@@ -65,7 +75,7 @@ document.addEventListener("DOMContentLoaded", function () {
             <li class="testimonials-item">
               <div class="content-card" data-testimonials-item>
                 <figure class="testimonials-avatar-box">
-                  <img src="./assets/images/${testimonial.avatar}" alt="${testimonial.name}" width="60" data-testimonials-avatar />
+                  <img src="${getImageUrl(testimonial.avatar)}" alt="${testimonial.name}" width="60" data-testimonials-avatar />
                 </figure>
                 <h4 class="h4 testimonials-item-title" data-testimonials-title>${testimonial.name}</h4>
                 <div class="testimonials-text" data-testimonials-text>
@@ -81,7 +91,7 @@ document.addEventListener("DOMContentLoaded", function () {
           document.getElementById('certificates-list').innerHTML = content.certificates.map(cert => `
             <li class="clients-item">
               <a href="#">
-                <img src="assets/images/${cert.logo}" alt="${cert.alt}" />
+                <img src="${getImageUrl(cert.logo)}" alt="${cert.alt}" />
               </a>
             </li>
           `).join('');
@@ -140,7 +150,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     <div class="project-item-icon-box">
                       <ion-icon name="eye-outline"></ion-icon>
                     </div>
-                    <img src="./assets/images/${project.image}" alt="${project.alt}" loading="lazy" />
+                    <img src="${getImageUrl(project.image)}" alt="${project.alt}" loading="lazy" />
                   </figure>
                   <h3 class="project-title">${project.title}</h3>
                   <p class="project-category">${project.category}</p>
