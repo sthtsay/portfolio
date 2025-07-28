@@ -10,6 +10,7 @@ const Joi = require('joi');
 const morgan = require('morgan');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const { exec } = require('child_process'); // For restarting the server
 
 const app = express();
 const server = http.createServer(app);
@@ -146,17 +147,45 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something went wrong. Please try again later.' });
 });
 
-// Graceful shutdown
-const shutdown = () => {
-  console.log('Gracefully shutting down...');
-  server.close(() => {
-    console.log('Server closed');
-    process.exit(0);
-  });
+// Graceful shutdown logic (shutdown + restart)
+const restartServer = () => {
+  console.log('Preparing to restart server...');
+  
+  setTimeout(() => {
+    console.log('Restarting server...');
+    exec('node ' + __filename, (err, stdout, stderr) => {
+      if (err) {
+        console.error(`Error restarting server: ${stderr}`);
+        return;
+      }
+      console.log('Server restarted successfully');
+    });
+    process.exit(); // Exit the current instance, which will allow the new one to start
+  }, 1000); // Wait for 1 second before restarting (adjustable)
 };
 
-process.on('SIGINT', shutdown); // For Ctrl + C
-process.on('SIGTERM', shutdown); // For termination signal
+// Graceful shutdown function
+const shutdown = () => {
+  console.log('Gracefully shutting down...');
+  // Perform any cleanup or final operations here
+  setTimeout(() => {
+    console.log('Server closed');
+    process.exit(0); // Exit gracefully
+  }, 1000); // Wait a bit before exiting for cleanup (adjustable)
+};
+
+// Capture the termination signals for graceful shutdown
+process.on('SIGINT', () => {
+  console.log('Received SIGINT (Ctrl+C), shutting down...');
+  shutdown(); // Gracefully shut down
+  restartServer(); // Restart the server
+});
+
+process.on('SIGTERM', () => {
+  console.log('Received SIGTERM, shutting down...');
+  shutdown(); // Gracefully shut down
+  restartServer(); // Restart the server
+});
 
 // Start the server
 server.listen(PORT, () => {
