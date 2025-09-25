@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const fs = require('fs').promises; // Using promises for file writing
+const fs = require('fs').promises;
 const path = require('path');
 const cors = require('cors');
 const http = require('http');
@@ -10,16 +10,12 @@ const Joi = require('joi');
 const morgan = require('morgan');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const { exec } = require('child_process'); // For restarting the server
+const { exec } = require('child_process');
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: {
-    origin: '*', // Allow all origins
-    methods: ['GET', 'POST'],
-    credentials: true
-  }
+  cors: { origin: '*', methods: ['GET', 'POST'], credentials: true }
 });
 
 const PORT = process.env.PORT || 3000;
@@ -40,37 +36,35 @@ const checkAdminToken = (req, res, next) => {
   next();
 };
 
-// Apply Helmet for basic security
+// Helmet for security
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 
-// Rate limiting to avoid abuse on upload endpoint
+// Rate limiting for upload
 const uploadLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // Limit each IP to 5 requests per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: 5,
   message: 'Too many upload requests from this IP, please try again later.'
 });
 app.use('/api/upload', uploadLimiter);
 
-// Enable CORS for all origins
+// CORS + logging
 app.use(cors());
+app.use(morgan('dev'));
 
-// Logging requests
-app.use(morgan('dev')); // Logs request info to the console
-
+// Body parser
 app.use(express.json({ limit: '2mb' }));
 app.use(express.static(path.join(__dirname, '..', '..', 'frontend', 'public')));
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
-// Multer storage configuration
+// Multer storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, 'uploads/'),
   filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
 });
 
-// File upload validation: max 5MB and only image files
 const upload = multer({
-  storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // Max file size of 5MB
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
     if (!allowedTypes.includes(file.mimetype)) {
@@ -80,7 +74,7 @@ const upload = multer({
   }
 });
 
-// Content validation schema using Joi
+// ✅ Joi schema
 const contentSchema = Joi.object({
   about: Joi.object({
     name: Joi.string().required(),
@@ -146,20 +140,20 @@ const contentSchema = Joi.object({
   ).default([])
 });
 
-// Apply checkAdminToken middleware to every endpoint that requires admin access
+// --- Routes ---
 
-// Endpoint for image upload (protected)
+// Upload image
 app.post('/api/upload', checkAdminToken, upload.single('image'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
   res.json({ filePath: `uploads/${req.file.filename}` });
 });
 
-// Endpoint to get content.json (public)
+// Serve content.json
 app.get('/content.json', (req, res) => {
   res.sendFile(CONTENT_PATH);
 });
 
-// Endpoint to update content.json (protected)
+// Update content.json
 app.post('/api/update-content', checkAdminToken, async (req, res) => {
   const { error } = contentSchema.validate(req.body);
   if (error) {
@@ -168,11 +162,30 @@ app.post('/api/update-content', checkAdminToken, async (req, res) => {
 
   const content = req.body;
 
+  // Helper: extract END year safely
+  const getEndYear = (years) => {
+    if (!years || years.trim() === '') return new Date().getFullYear() + 1; // Treat missing as "Present"
+    const parts = years.split('—').map(s => s.trim());
+    if (parts.length < 2) {
+      return parseInt(parts[0]) || new Date().getFullYear() + 1;
+    }
+    const end = parts[1];
+    if (/present/i.test(end)) return new Date().getFullYear() + 1;
+    return parseInt(end) || new Date().getFullYear() + 1;
+  };
+
+  // --- Sort education by END year (desc) ---
+  if (content.education) {
+    content.education.sort((a, b) => getEndYear(b.years) - getEndYear(a.years));
+  }
+
+  // --- Sort experience by END year (desc) ---
+  if (content.experience) {
+    content.experience.sort((a, b) => getEndYear(b.years) - getEndYear(a.years));
+  }
+
   try {
-    // Write the new content to content.json
     await fs.writeFile(CONTENT_PATH, JSON.stringify(content, null, 2));
-    
-    // Emit WebSocket event to notify clients
     io.emit('content-updated', { message: 'Content has been updated. Please refresh.' });
     res.json({ success: true });
   } catch (err) {
@@ -180,20 +193,14 @@ app.post('/api/update-content', checkAdminToken, async (req, res) => {
   }
 });
 
-// WebSocket connections handling
+// WebSocket
 io.on('connection', (socket) => {
   console.log('A user connected');
-  
-  socket.on('disconnect', () => {
-    console.log('User disconnected');
-  });
-
-  socket.on('reconnect', () => {
-    console.log('A user reconnected');
-  });
+  socket.on('disconnect', () => console.log('User disconnected'));
+  socket.on('reconnect', () => console.log('A user reconnected'));
 });
 
-// Error handler for multer file upload
+// Multer error handler
 app.use((err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     return res.status(400).json({ error: err.message });
@@ -203,14 +210,13 @@ app.use((err, req, res, next) => {
 
 // General error handler
 app.use((err, req, res, next) => {
-  console.error(err.stack); // Log the error for debugging
+  console.error(err.stack);
   res.status(500).json({ error: 'Something went wrong. Please try again later.' });
 });
 
-// Graceful shutdown logic (shutdown + restart)
+// Restart & shutdown
 const restartServer = () => {
   console.log('Preparing to restart server...');
-  
   setTimeout(() => {
     console.log('Restarting server...');
     exec('node ' + __filename, (err, stdout, stderr) => {
@@ -220,34 +226,31 @@ const restartServer = () => {
       }
       console.log('Server restarted successfully');
     });
-    process.exit(); // Exit the current instance, which will allow the new one to start
-  }, 1000); // Wait for 1 second before restarting (adjustable)
+    process.exit();
+  }, 1000);
 };
 
-// Graceful shutdown function
 const shutdown = () => {
   console.log('Gracefully shutting down...');
-  // Perform any cleanup or final operations here
   setTimeout(() => {
     console.log('Server closed');
-    process.exit(0); // Exit gracefully
-  }, 1000); // Wait a bit before exiting for cleanup (adjustable)
+    process.exit(0);
+  }, 1000);
 };
 
-// Capture the termination signals for graceful shutdown
 process.on('SIGINT', () => {
   console.log('Received SIGINT (Ctrl+C), shutting down...');
-  shutdown(); // Gracefully shut down
-  restartServer(); // Restart the server
+  shutdown();
+  restartServer();
 });
 
 process.on('SIGTERM', () => {
   console.log('Received SIGTERM, shutting down...');
-  shutdown(); // Gracefully shut down
-  restartServer(); // Restart the server
+  shutdown();
+  restartServer();
 });
 
-// Start the server
+// Start server
 server.listen(PORT, () => {
   console.log(`Portfolio server running at http://localhost:${PORT}`);
 });
