@@ -82,8 +82,68 @@ const upload = multer({
 
 // Content validation schema using Joi
 const contentSchema = Joi.object({
-  about: Joi.string().required(),
-  services: Joi.array().items(Joi.string()).required(),
+  about: Joi.object({
+    name: Joi.string().required(),
+    title: Joi.string().required(),
+    description: Joi.array().items(Joi.string()).required()
+  }).required(),
+
+  services: Joi.array().items(
+    Joi.object({
+      icon: Joi.string().allow(''),
+      title: Joi.string().required(),
+      text: Joi.string().required()
+    })
+  ).default([]),
+
+  projects: Joi.array().items(
+    Joi.object({
+      title: Joi.string().required(),
+      category: Joi.string().allow(''),
+      type: Joi.string().allow(''),
+      image: Joi.string().allow(''),
+      alt: Joi.string().allow('')
+    })
+  ).default([]),
+
+  testimonials: Joi.array().items(
+    Joi.object({
+      avatar: Joi.string().allow(''),
+      name: Joi.string().required(),
+      text: Joi.string().required()
+    })
+  ).default([]),
+
+  certificates: Joi.array().items(
+    Joi.object({
+      logo: Joi.string().allow(''),
+      alt: Joi.string().allow('')
+    })
+  ).default([]),
+
+  education: Joi.array().items(
+    Joi.object({
+      school: Joi.string().required(),
+      years: Joi.string().allow(''),
+      text: Joi.string().allow('')
+    })
+  ).default([]),
+
+  experience: Joi.array().items(
+    Joi.object({
+      title: Joi.string().required(),
+      company: Joi.string().allow(''),
+      years: Joi.string().allow(''),
+      text: Joi.string().allow('')
+    })
+  ).default([]),
+
+  skills: Joi.array().items(
+    Joi.object({
+      name: Joi.string().required(),
+      value: Joi.number().min(0).max(100).required()
+    })
+  ).default([])
 });
 
 // Apply checkAdminToken middleware to every endpoint that requires admin access
