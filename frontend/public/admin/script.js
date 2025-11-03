@@ -283,6 +283,7 @@ function renderAll() {
   renderEducation();
   renderExperience();
   renderSkills();
+  renderContacts();
 }
 
 // ABOUT
@@ -513,6 +514,118 @@ function renderSkills() {
   add.onclick = () => { (content.skills = content.skills||[]).push({name:'',value:0}); renderSkills(); };
   tab.appendChild(list);
   tab.appendChild(add);
+}
+
+// CONTACTS
+function renderContacts() {
+  const tab = document.getElementById('tab-contacts');
+  tab.innerHTML = '<div class="loading">Loading contacts...</div>';
+  
+  if (!adminToken) {
+    tab.innerHTML = '<p>Please authenticate to view contacts.</p>';
+    return;
+  }
+  
+  fetch(`${API_URL}/api/contacts`, {
+    headers: { 'Authorization': `Bearer ${adminToken}` }
+  })
+  .then(r => r.json())
+  .then(contacts => {
+    tab.innerHTML = '';
+    
+    if (contacts.length === 0) {
+      tab.innerHTML = '<p class="no-contacts">No contact submissions yet.</p>';
+      return;
+    }
+    
+    const contactsList = document.createElement('div');
+    contactsList.className = 'contacts-list';
+    
+    contacts.forEach(contact => {
+      const contactItem = document.createElement('div');
+      contactItem.className = `contact-item ${contact.read ? 'read' : 'unread'}`;
+      
+      const date = new Date(contact.timestamp).toLocaleString();
+      
+      contactItem.innerHTML = `
+        <div class="contact-header">
+          <h4>${contact.fullname}</h4>
+          <span class="contact-date">${date}</span>
+          ${!contact.read ? '<span class="unread-badge">New</span>' : ''}
+        </div>
+        <div class="contact-email">
+          <a href="mailto:${contact.email}">${contact.email}</a>
+        </div>
+        <div class="contact-message">
+          <p>${contact.message}</p>
+        </div>
+        <div class="contact-actions">
+          ${!contact.read ? `<button class="mark-read-btn" onclick="markContactRead('${contact.id}')">Mark as Read</button>` : ''}
+          <button class="delete-contact-btn" onclick="deleteContact('${contact.id}')">Delete</button>
+        </div>
+      `;
+      
+      contactsList.appendChild(contactItem);
+    });
+    
+    tab.appendChild(contactsList);
+  })
+  .catch(err => {
+    tab.innerHTML = '<p class="error">Failed to load contacts. Please try again.</p>';
+    console.error('Failed to load contacts:', err);
+  });
+}
+
+// Mark contact as read
+async function markContactRead(contactId) {
+  if (!adminToken) {
+    const token = await requestAdminToken();
+    if (!token) return;
+  }
+  
+  fetch(`${API_URL}/api/contacts/${contactId}/read`, {
+    method: 'PATCH',
+    headers: { 'Authorization': `Bearer ${adminToken}` }
+  })
+  .then(r => r.json())
+  .then(result => {
+    if (result.success) {
+      renderContacts(); // Refresh the contacts list
+    } else {
+      alert('Failed to mark contact as read');
+    }
+  })
+  .catch(err => {
+    alert('Error marking contact as read');
+    console.error(err);
+  });
+}
+
+// Delete contact
+async function deleteContact(contactId) {
+  if (!confirm('Are you sure you want to delete this contact?')) return;
+  
+  if (!adminToken) {
+    const token = await requestAdminToken();
+    if (!token) return;
+  }
+  
+  fetch(`${API_URL}/api/contacts/${contactId}`, {
+    method: 'DELETE',
+    headers: { 'Authorization': `Bearer ${adminToken}` }
+  })
+  .then(r => r.json())
+  .then(result => {
+    if (result.success) {
+      renderContacts(); // Refresh the contacts list
+    } else {
+      alert('Failed to delete contact');
+    }
+  })
+  .catch(err => {
+    alert('Error deleting contact');
+    console.error(err);
+  });
 }
 
 // Save to backend

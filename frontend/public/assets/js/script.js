@@ -323,6 +323,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const formInputs = document.querySelectorAll("[data-form-input]");
   const formBtn = document.querySelector("[data-form-btn]");
 
+  // Form validation
   formInputs.forEach(input => {
     input.addEventListener("input", function () {
       if (form.checkValidity()) {
@@ -332,6 +333,64 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   });
+
+  // Form submission
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = new FormData(form);
+      const contactData = {
+        fullname: formData.get('fullname'),
+        email: formData.get('email'),
+        message: formData.get('message')
+      };
+
+      // Disable form during submission
+      formBtn.disabled = true;
+      const originalText = formBtn.querySelector('span').textContent;
+      formBtn.querySelector('span').textContent = 'Sending...';
+
+      try {
+        const response = await fetch(`${BACKEND_URL}/api/contact`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(contactData)
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          // Success
+          form.reset();
+          formBtn.disabled = true;
+          formBtn.querySelector('span').textContent = 'Message Sent!';
+          formBtn.style.background = '#4CAF50';
+          
+          // Show success message
+          alert(result.message || 'Thank you for your message! I\'ll get back to you soon.');
+          
+          // Reset button after 3 seconds
+          setTimeout(() => {
+            formBtn.querySelector('span').textContent = originalText;
+            formBtn.style.background = '';
+          }, 3000);
+        } else {
+          // Error
+          throw new Error(result.error || 'Failed to send message');
+        }
+      } catch (error) {
+        console.error('Contact form error:', error);
+        alert('Sorry, there was an error sending your message. Please try again.');
+        
+        // Reset button
+        formBtn.disabled = false;
+        formBtn.querySelector('span').textContent = originalText;
+      }
+    });
+  }
 
   // Page navigation functionality
   const navigationLinks = document.querySelectorAll("[data-nav-link]");
