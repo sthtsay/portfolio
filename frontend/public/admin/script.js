@@ -34,14 +34,22 @@ tokenCancelBtn.onclick = () => {
   tokenInput.value = '';
 };
 
-// Tab switching
-document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.onclick = function() {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
-  };
+// Navigation switching (matching portfolio style)
+document.querySelectorAll('[data-nav-link]').forEach(link => {
+  link.addEventListener('click', function() {
+    const pageName = this.dataset.tab;
+    
+    // Remove active class from all nav links and articles
+    document.querySelectorAll('[data-nav-link]').forEach(navLink => navLink.classList.remove('active'));
+    document.querySelectorAll('.article').forEach(article => article.classList.remove('active'));
+    
+    // Add active class to clicked nav link and corresponding article
+    this.classList.add('active');
+    document.getElementById('tab-' + pageName).classList.add('active');
+    
+    // Scroll to top
+    window.scrollTo(0, 0);
+  });
 });
 
 // Helper: create input
