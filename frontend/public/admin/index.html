@@ -12,44 +12,82 @@
   </head>
   <body>
     <main>
-      <div class="admin-container">
-        <header class="admin-header">
-          <h1 class="admin-title">Portfolio Admin Panel</h1>
-          <p class="admin-subtitle">Manage your portfolio content with ease</p>
-        </header>
+      <!-- Sidebar -->
+      <aside class="admin-sidebar">
+        <div class="admin-info">
+          <figure class="admin-avatar">
+            <ion-icon name="settings-outline"></ion-icon>
+          </figure>
+          <div class="info-content">
+            <h1 class="admin-name">Admin Panel</h1>
+            <p class="admin-role">Portfolio Manager</p>
+          </div>
+        </div>
+
+        <div class="separator"></div>
 
         <nav class="navbar">
           <ul class="navbar-list">
             <li class="navbar-item">
-              <button class="navbar-link active" data-nav-link data-tab="about">About</button>
+              <button class="navbar-link active" data-nav-link data-tab="about">
+                <ion-icon name="person-outline"></ion-icon>
+                About
+              </button>
             </li>
             <li class="navbar-item">
-              <button class="navbar-link" data-nav-link data-tab="services">Services</button>
+              <button class="navbar-link" data-nav-link data-tab="services">
+                <ion-icon name="briefcase-outline"></ion-icon>
+                Services
+              </button>
             </li>
             <li class="navbar-item">
-              <button class="navbar-link" data-nav-link data-tab="projects">Projects</button>
+              <button class="navbar-link" data-nav-link data-tab="projects">
+                <ion-icon name="code-slash-outline"></ion-icon>
+                Projects
+              </button>
             </li>
             <li class="navbar-item">
-              <button class="navbar-link" data-nav-link data-tab="testimonials">Testimonials</button>
+              <button class="navbar-link" data-nav-link data-tab="testimonials">
+                <ion-icon name="chatbubbles-outline"></ion-icon>
+                Testimonials
+              </button>
             </li>
             <li class="navbar-item">
-              <button class="navbar-link" data-nav-link data-tab="certificates">Certificates</button>
+              <button class="navbar-link" data-nav-link data-tab="certificates">
+                <ion-icon name="ribbon-outline"></ion-icon>
+                Certificates
+              </button>
             </li>
             <li class="navbar-item">
-              <button class="navbar-link" data-nav-link data-tab="education">Education</button>
+              <button class="navbar-link" data-nav-link data-tab="education">
+                <ion-icon name="school-outline"></ion-icon>
+                Education
+              </button>
             </li>
             <li class="navbar-item">
-              <button class="navbar-link" data-nav-link data-tab="experience">Experience</button>
+              <button class="navbar-link" data-nav-link data-tab="experience">
+                <ion-icon name="business-outline"></ion-icon>
+                Experience
+              </button>
             </li>
             <li class="navbar-item">
-              <button class="navbar-link" data-nav-link data-tab="skills">Skills</button>
+              <button class="navbar-link" data-nav-link data-tab="skills">
+                <ion-icon name="bar-chart-outline"></ion-icon>
+                Skills
+              </button>
             </li>
             <li class="navbar-item">
-              <button class="navbar-link" data-nav-link data-tab="contacts">Contacts</button>
+              <button class="navbar-link" data-nav-link data-tab="contacts">
+                <ion-icon name="mail-outline"></ion-icon>
+                Contacts
+              </button>
             </li>
           </ul>
         </nav>
+      </aside>
 
+      <!-- Main Content -->
+      <div class="admin-content">
         <form id="admin-form">
           <article class="article active" data-page="about" id="tab-about">
             <header><h2 class="h2 article-title">About</h2></header>
@@ -95,6 +133,25 @@
         </form>
       </div>
     </main>
+
+    <!-- Testimonial Modal -->
+    <div id="testimonial-modal" class="modal-overlay">
+      <div class="modal-content testimonial-modal-content">
+        <button class="modal-close-btn" id="testimonial-close-btn">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+        <div class="modal-img-wrapper">
+          <figure class="modal-avatar-box">
+            <img src="" alt="" width="80" id="modal-testimonial-avatar" />
+          </figure>
+          <ion-icon name="chatbubble-outline" class="quote-icon"></ion-icon>
+        </div>
+        <div class="modal-content-text">
+          <h4 class="modal-title" id="modal-testimonial-name"></h4>
+          <div class="modal-text" id="modal-testimonial-text"></div>
+        </div>
+      </div>
+    </div>
 
     <div id="token-modal" class="modal-overlay" style="display: none">
       <div class="modal-content">

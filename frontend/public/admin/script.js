@@ -373,6 +373,15 @@ function renderTestimonials() {
   (content.testimonials||[]).forEach((t, i) => {
     const item = document.createElement('div');
     item.className = 'list-item';
+    
+    // Add preview button
+    const previewBtn = document.createElement('button');
+    previewBtn.type = 'button';
+    previewBtn.className = 'btn';
+    previewBtn.innerHTML = '<ion-icon name="eye-outline"></ion-icon> Preview';
+    previewBtn.onclick = () => showTestimonialModal(t);
+    item.appendChild(previewBtn);
+    
     item.appendChild(createImageUploadInput(`testimonial-avatar-${i}`, t.avatar));
     item.appendChild(labeledInput('Name', createInput('text', t.name, 'Name', `testimonial-name-${i}`)));
     item.appendChild(labeledInput('Text', createInput('textarea', t.text, 'Testimonial', `testimonial-text-${i}`)));
@@ -392,6 +401,35 @@ function renderTestimonials() {
   tab.appendChild(list);
   tab.appendChild(add);
 }
+
+// Show testimonial modal
+function showTestimonialModal(testimonial) {
+  const modal = document.getElementById('testimonial-modal');
+  const avatar = document.getElementById('modal-testimonial-avatar');
+  const name = document.getElementById('modal-testimonial-name');
+  const text = document.getElementById('modal-testimonial-text');
+  
+  // Set content
+  avatar.src = testimonial.avatar.startsWith('uploads/') ? `${API_URL}/${testimonial.avatar}` : `./assets/images/${testimonial.avatar}`;
+  avatar.alt = testimonial.name;
+  name.textContent = testimonial.name;
+  text.innerHTML = `<p>${testimonial.text}</p>`;
+  
+  // Show modal
+  modal.classList.add('active');
+}
+
+// Close testimonial modal
+document.getElementById('testimonial-close-btn').onclick = () => {
+  document.getElementById('testimonial-modal').classList.remove('active');
+};
+
+// Close modal when clicking overlay
+document.getElementById('testimonial-modal').onclick = (e) => {
+  if (e.target.id === 'testimonial-modal') {
+    document.getElementById('testimonial-modal').classList.remove('active');
+  }
+};
 
 // CERTIFICATES
 function renderCertificates() {
