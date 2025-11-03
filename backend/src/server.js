@@ -10,6 +10,7 @@ const Joi = require('joi');
 const morgan = require('morgan');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const nodemailer = require('nodemailer');
 const { exec } = require('child_process');
 const app = express();
 const server = http.createServer(app);
@@ -19,12 +20,29 @@ const io = new Server(server, {
 
 const PORT = process.env.PORT || 3000;
 const CONTENT_PATH = path.join(__dirname, '..', 'content.json');
+const CONTACTS_PATH = path.join(__dirname, '..', 'contacts.json');
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN;
 
 if (!ADMIN_TOKEN) {
   console.error('FATAL ERROR: ADMIN_TOKEN is not defined. Please create a .env file with ADMIN_TOKEN.');
   process.exit(1);
 }
+
+// Email configuration
+const createEmailTransporter = () => {
+  if (process.env.EMAIL_SERVICE && process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+    return nodemailer.createTransporter({
+      service: process.env.EMAIL_SERVICE, // 'gmail', 'outlook', etc.
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      }
+    });
+  }
+  return null;
+};
+
+const emailTransporter = createEmailTransporter();
 
 // Middleware to check for admin token
 const checkAdminToken = (req, res, next) => {
@@ -139,7 +157,133 @@ const contentSchema = Joi.object({
   ).default([])
 });
 
+// Contact form validation schema
+const contactSchema = Joi.object({
+  fullname: Joi.string().min(2).max(100).required(),
+  email: Joi.string().email().required(),
+  message: Joi.string().min(10).max(2000).required()
+});
+
+// --- Helper Functions ---
+
+// Load contacts from file
+const loadContacts = async () => {
+  try {
+    const data = await fs.readFile(CONTACTS_PATH, 'utf8');
+    return JSON.parse(data);
+  } catch (error) {
+    return []; // Return empty array if file doesn't exist
+  }
+};
+
+// Save contacts to file
+const saveContacts = async (contacts) => {
+  await fs.writeFile(CONTACTS_PATH, JSON.stringify(contacts, null, 2));
+};
+
+// Send email notification
+const sendEmailNotification = async (contactData) => {
+  if (!emailTransporter) return false;
+  
+  try {
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: process.env.NOTIFICATION_EMAIL || process.env.EMAIL_USER,
+      subject: `New Contact Form Submission from ${contactData.fullname}`,
+      html: `
+        <h2>New Contact Form Submission</h2>
+        <p><strong>Name:</strong> ${contactData.fullname}</p>
+        <p><strong>Email:</strong> ${contactData.email}</p>
+        <p><strong>Message:</strong></p>
+        <p>${contactData.message.replace(/\n/g, '<br>')}</p>
+        <p><strong>Submitted:</strong> ${new Date().toLocaleString()}</p>
+      `
+    };
+    
+    await emailTransporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error('Email sending failed:', error);
+    return false;
+  }
+};
+
 // --- Routes ---
+
+// Contact form submission
+app.post('/api/contact', async (req, res) => {
+  const { error } = contactSchema.validate(req.body);
+  if (error) {
+    return res.status(400).json({ error: error.details[0].message });
+  }
+
+  const contactData = {
+    id: Date.now().toString(),
+    fullname: req.body.fullname.trim(),
+    email: req.body.email.trim().toLowerCase(),
+    message: req.body.message.trim(),
+    timestamp: new Date().toISOString(),
+    read: false
+  };
+
+  try {
+    // Save to contacts file
+    const contacts = await loadContacts();
+    contacts.unshift(contactData); // Add to beginning (most recent first)
+    await saveContacts(contacts);
+
+    // Send email notification (optional)
+    const emailSent = await sendEmailNotification(contactData);
+
+    res.json({ 
+      success: true, 
+      message: 'Thank you for your message! I\'ll get back to you soon.',
+      emailSent 
+    });
+  } catch (err) {
+    console.error('Contact form error:', err);
+    res.status(500).json({ error: 'Failed to submit contact form. Please try again.' });
+  }
+});
+
+// Get contacts (admin only)
+app.get('/api/contacts', checkAdminToken, async (req, res) => {
+  try {
+    const contacts = await loadContacts();
+    res.json(contacts);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to load contacts' });
+  }
+});
+
+// Mark contact as read (admin only)
+app.patch('/api/contacts/:id/read', checkAdminToken, async (req, res) => {
+  try {
+    const contacts = await loadContacts();
+    const contact = contacts.find(c => c.id === req.params.id);
+    if (!contact) {
+      return res.status(404).json({ error: 'Contact not found' });
+    }
+    
+    contact.read = true;
+    await saveContacts(contacts);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update contact' });
+  }
+});
+
+// Delete contact (admin only)
+app.delete('/api/contacts/:id', checkAdminToken, async (req, res) => {
+  try {
+    const contacts = await loadContacts();
+    const filteredContacts = contacts.filter(c => c.id !== req.params.id);
+    await saveContacts(filteredContacts);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete contact' });
+  }
+});
 
 // Upload image
 app.post('/api/upload', checkAdminToken, upload.single('image'), (req, res) => {
