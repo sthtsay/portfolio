@@ -283,6 +283,7 @@ fetch(`${API_URL}/content.json`)
   });
 
 function renderAll() {
+  renderDashboard();
   renderAbout();
   renderServices();
   renderProjects();
@@ -292,6 +293,105 @@ function renderAll() {
   renderExperience();
   renderSkills();
   renderContacts();
+}
+
+// DASHBOARD
+function renderDashboard() {
+  // Update stats
+  document.getElementById('services-count').textContent = (content.services || []).length;
+  document.getElementById('projects-count').textContent = (content.projects || []).length;
+  document.getElementById('testimonials-count').textContent = (content.testimonials || []).length;
+  
+  // Update contacts count (unread messages)
+  if (adminToken) {
+    fetch(`${API_URL}/api/contacts`, {
+      headers: { 'Authorization': `Bearer ${adminToken}` }
+    })
+    .then(r => r.json())
+    .then(contacts => {
+      const unreadCount = contacts.filter(c => !c.read).length;
+      document.getElementById('contacts-count').textContent = unreadCount;
+    })
+    .catch(() => {
+      document.getElementById('contacts-count').textContent = '0';
+    });
+  }
+  
+  // Setup quick action buttons
+  document.querySelectorAll('[data-action]').forEach(btn => {
+    btn.onclick = (e) => {
+      const action = e.currentTarget.dataset.action;
+      switch(action) {
+        case 'add-project':
+          switchToTab('projects');
+          // Trigger add project
+          setTimeout(() => {
+            const addBtn = document.querySelector('#tab-projects .add-btn');
+            if (addBtn) addBtn.click();
+          }, 100);
+          break;
+        case 'add-testimonial':
+          switchToTab('testimonials');
+          setTimeout(() => {
+            const addBtn = document.querySelector('#tab-testimonials .add-btn');
+            if (addBtn) addBtn.click();
+          }, 100);
+          break;
+        case 'view-contacts':
+          switchToTab('contacts');
+          break;
+      }
+    };
+  });
+}
+
+// Helper function to switch tabs
+function switchToTab(tabName) {
+  // Remove active class from all nav links and articles
+  document.querySelectorAll('[data-nav-link]').forEach(navLink => navLink.classList.remove('active'));
+  document.querySelectorAll('.article').forEach(article => article.classList.remove('active'));
+  
+  // Add active class to target tab
+  const navLink = document.querySelector(`[data-tab="${tabName}"]`);
+  const article = document.getElementById(`tab-${tabName}`);
+  
+  if (navLink && article) {
+    navLink.classList.add('active');
+    article.classList.add('active');
+  }
+}
+
+// Enhanced notification system
+function showNotification(title, message, type = 'info') {
+  const notification = document.createElement('div');
+  notification.className = `notification ${type}`;
+  
+  const iconMap = {
+    success: 'checkmark-circle-outline',
+    error: 'alert-circle-outline',
+    info: 'information-circle-outline'
+  };
+  
+  notification.innerHTML = `
+    <div class="notification-content">
+      <ion-icon name="${iconMap[type]}" class="notification-icon"></ion-icon>
+      <div class="notification-text">
+        <div class="notification-title">${title}</div>
+        <p class="notification-message">${message}</p>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Show notification
+  setTimeout(() => notification.classList.add('show'), 100);
+  
+  // Hide and remove notification
+  setTimeout(() => {
+    notification.classList.remove('show');
+    setTimeout(() => notification.remove(), 300);
+  }, 4000);
 }
 
 // ABOUT

@@ -29,7 +29,13 @@
         <nav class="navbar">
           <ul class="navbar-list">
             <li class="navbar-item">
-              <button class="navbar-link active" data-nav-link data-tab="about">
+              <button class="navbar-link active" data-nav-link data-tab="dashboard">
+                <ion-icon name="grid-outline"></ion-icon>
+                Dashboard
+              </button>
+            </li>
+            <li class="navbar-item">
+              <button class="navbar-link" data-nav-link data-tab="about">
                 <ion-icon name="person-outline"></ion-icon>
                 About
               </button>
@@ -89,7 +95,66 @@
       <!-- Main Content -->
       <div class="admin-content">
         <form id="admin-form">
-          <article class="article active" data-page="about" id="tab-about">
+          <article class="article active" data-page="dashboard" id="tab-dashboard">
+            <header><h2 class="h2 article-title">Dashboard</h2></header>
+            <div class="dashboard-grid">
+              <div class="stats-card">
+                <div class="stats-icon">
+                  <ion-icon name="briefcase-outline"></ion-icon>
+                </div>
+                <div class="stats-content">
+                  <h3 class="stats-number" id="services-count">0</h3>
+                  <p class="stats-label">Services</p>
+                </div>
+              </div>
+              <div class="stats-card">
+                <div class="stats-icon">
+                  <ion-icon name="code-slash-outline"></ion-icon>
+                </div>
+                <div class="stats-content">
+                  <h3 class="stats-number" id="projects-count">0</h3>
+                  <p class="stats-label">Projects</p>
+                </div>
+              </div>
+              <div class="stats-card">
+                <div class="stats-icon">
+                  <ion-icon name="chatbubbles-outline"></ion-icon>
+                </div>
+                <div class="stats-content">
+                  <h3 class="stats-number" id="testimonials-count">0</h3>
+                  <p class="stats-label">Testimonials</p>
+                </div>
+              </div>
+              <div class="stats-card">
+                <div class="stats-icon">
+                  <ion-icon name="mail-outline"></ion-icon>
+                </div>
+                <div class="stats-content">
+                  <h3 class="stats-number" id="contacts-count">0</h3>
+                  <p class="stats-label">New Messages</p>
+                </div>
+              </div>
+            </div>
+            <div class="quick-actions">
+              <h3 class="section-title">Quick Actions</h3>
+              <div class="action-buttons">
+                <button class="action-btn" data-action="add-project">
+                  <ion-icon name="add-circle-outline"></ion-icon>
+                  Add New Project
+                </button>
+                <button class="action-btn" data-action="add-testimonial">
+                  <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
+                  Add Testimonial
+                </button>
+                <button class="action-btn" data-action="view-contacts">
+                  <ion-icon name="mail-open-outline"></ion-icon>
+                  View Messages
+                </button>
+              </div>
+            </div>
+          </article>
+          
+          <article class="article" data-page="about" id="tab-about">
             <header><h2 class="h2 article-title">About</h2></header>
           </article>
           
