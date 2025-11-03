@@ -1775,4 +1775,145 @@ tacts Management Styles */
   0% { transform: scale(1); }
   50% { transform: scale(1.02); }
   100% { transform: scale(1); }
+}/*-
+----------------------------------*\
+  #DASHBOARD CHARTS
+\*-----------------------------------*/
+
+.dashboard-charts {
+  margin: 40px 0;
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 25px;
+  margin-top: 20px;
+}
+
+.chart-card {
+  background: var(--bg-gradient-jet);
+  border: 1px solid var(--jet);
+  border-radius: 16px;
+  padding: 25px;
+  transition: var(--transition-1);
+  position: relative;
+  overflow: hidden;
+}
+
+.chart-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: var(--bg-gradient-yellow-1);
+}
+
+.chart-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-3);
+}
+
+.chart-title {
+  color: var(--white-1);
+  font-size: var(--fs-5);
+  font-weight: var(--fw-600);
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.chart-container {
+  position: relative;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chart-container canvas {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/*-----------------------------------*\
+  #SKILL SLIDER
+\*-----------------------------------*/
+
+.skill-slider-container {
+  position: relative;
+  margin: 10px 0;
+}
+
+.skill-slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 8px;
+  border-radius: 5px;
+  background: var(--onyx);
+  outline: none;
+  transition: var(--transition-1);
+}
+
+.skill-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--bg-gradient-yellow-1);
+  cursor: pointer;
+  box-shadow: var(--shadow-1);
+  transition: var(--transition-1);
+}
+
+.skill-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: var(--shadow-3);
+}
+
+.skill-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--bg-gradient-yellow-1);
+  cursor: pointer;
+  border: none;
+  box-shadow: var(--shadow-1);
+  transition: var(--transition-1);
+}
+
+.skill-slider::-moz-range-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: var(--shadow-3);
+}
+
+.skill-value-display {
+  position: absolute;
+  right: 0;
+  top: -30px;
+  background: var(--bg-gradient-yellow-1);
+  color: var(--smoky-black);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: var(--fs-7);
+  font-weight: var(--fw-600);
+  min-width: 40px;
+  text-align: center;
+}
+
+.skill-value-display::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--orange-yellow-crayola);
+}
+
+/* Skill slider track fill */
+.skill-slider {
+  background: linear-gradient(to right, var(--orange-yellow-crayola) 0%, var(--orange-yellow-crayola) var(--fill-percent, 0%), var(--onyx) var(--fill-percent, 0%), var(--onyx) 100%);
 }

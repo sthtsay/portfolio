@@ -229,7 +229,7 @@ function createImageUploadInput(name, currentImagePath) {
     if (!adminToken) {
       const token = await requestAdminToken();
       if (!token) {
-        await customAlert('Authentication Required', 'Admin token is required to upload images.', 'warning');
+        customAlert('Authentication Required', 'Admin token is required to upload images.', 'warning');
         fileInputLabel.textContent = 'Choose File';
         return;
       }
@@ -249,11 +249,11 @@ function createImageUploadInput(name, currentImagePath) {
         hiddenInput.value = data.filePath;
         preview.src = `${API_URL}/${data.filePath}`;
       } else {
-        await customAlert('Upload Failed', data.error || 'Unknown error occurred during upload.', 'error');
+        customAlert('Upload Failed', data.error || 'Unknown error occurred during upload.', 'error');
         if (data.error === 'Unauthorized') sessionStorage.removeItem('admin-token');
       }
     })
-    .catch(async err => await customAlert('Upload Error', 'An error occurred during upload: ' + err.message, 'error'));
+    .catch(err => customAlert('Upload Error', 'An error occurred during upload: ' + err.message, 'error'));
   };
   container.appendChild(fileInput);
 
@@ -315,6 +315,9 @@ function renderDashboard() {
     });
   }
   
+  // Render charts
+  renderCharts();
+  
   // Setup quick action buttons
   document.querySelectorAll('[data-action]').forEach(btn => {
     btn.onclick = (e) => {
@@ -365,6 +368,16 @@ function switchToTab(tabName) {
   if (navLink && article) {
     navLink.classList.add('active');
     article.classList.add('active');
+  }
+  
+  // Show/hide save button based on tab
+  const saveBtn = document.getElementById('save-btn');
+  if (saveBtn) {
+    if (tabName === 'dashboard' || tabName === 'contacts') {
+      saveBtn.style.display = 'none';
+    } else {
+      saveBtn.style.display = 'block';
+    }
   }
 }
 
@@ -982,7 +995,41 @@ function renderSkills() {
     const item = document.createElement('div');
     item.className = 'list-item';
     item.appendChild(labeledInput('Name', createInput('text', s.name, 'Skill', `skill-name-${i}`)));
-    item.appendChild(labeledInput('Value (%)', createInput('number', s.value, '90', `skill-value-${i}`)));
+    
+    // Create skill slider
+    const sliderGroup = document.createElement('div');
+    sliderGroup.className = 'form-group';
+    const sliderLabel = document.createElement('label');
+    sliderLabel.textContent = 'Skill Level (%)';
+    
+    const sliderContainer = document.createElement('div');
+    sliderContainer.className = 'skill-slider-container';
+    
+    const slider = document.createElement('input');
+    slider.type = 'range';
+    slider.min = '0';
+    slider.max = '100';
+    slider.value = s.value || 0;
+    slider.className = 'skill-slider';
+    slider.name = `skill-value-${i}`;
+    slider.style.setProperty('--fill-percent', `${s.value || 0}%`);
+    
+    const valueDisplay = document.createElement('div');
+    valueDisplay.className = 'skill-value-display';
+    valueDisplay.textContent = `${s.value || 0}%`;
+    
+    // Update display and track fill on slider change
+    slider.oninput = function() {
+      valueDisplay.textContent = `${this.value}%`;
+      this.style.setProperty('--fill-percent', `${this.value}%`);
+    };
+    
+    sliderContainer.appendChild(slider);
+    sliderContainer.appendChild(valueDisplay);
+    sliderGroup.appendChild(sliderLabel);
+    sliderGroup.appendChild(sliderContainer);
+    
+    item.appendChild(sliderGroup);
     const remove = document.createElement('button');
     remove.type = 'button';
     remove.className = 'remove-btn';
@@ -1070,11 +1117,11 @@ async function markContactRead(contactId) {
     if (result.success) {
       renderContacts(); // Refresh the contacts list
     } else {
-      await customAlert('Operation Failed', 'Failed to mark contact as read. Please try again.', 'error');
+      customAlert('Operation Failed', 'Failed to mark contact as read. Please try again.', 'error');
     }
   })
-  .catch(async err => {
-    await customAlert('Network Error', 'Error marking contact as read. Please check your connection.', 'error');
+  .catch(err => {
+    customAlert('Network Error', 'Error marking contact as read. Please check your connection.', 'error');
     console.error(err);
   });
 }
@@ -1103,11 +1150,11 @@ async function deleteContact(contactId) {
     if (result.success) {
       renderContacts(); // Refresh the contacts list
     } else {
-      await customAlert('Delete Failed', 'Failed to delete contact. Please try again.', 'error');
+      customAlert('Delete Failed', 'Failed to delete contact. Please try again.', 'error');
     }
   })
-  .catch(async err => {
-    await customAlert('Network Error', 'Error deleting contact. Please check your connection.', 'error');
+  .catch(err => {
+    customAlert('Network Error', 'Error deleting contact. Please check your connection.', 'error');
     console.error(err);
   });
 }
@@ -1117,7 +1164,7 @@ document.getElementById('save-btn').onclick = async function() {
   if (!adminToken) {
     const token = await requestAdminToken();
     if (!token) {
-      await customAlert('Authentication Required', 'Admin token is required to save changes.', 'warning');
+      customAlert('Authentication Required', 'Admin token is required to save changes.', 'warning');
       return;
     }
   }
@@ -1199,3 +1246,151 @@ document.getElementById('save-btn').onclick = async function() {
     document.getElementById('msg').className = 'msg error';
   });
 };
+
+// Render dashboard charts
+function renderCharts() {
+  renderSkillsChart();
+  renderContentChart();
+}
+
+// Skills distribution chart
+function renderSkillsChart() {
+  const canvas = document.getElementById('skills-chart');
+  if (!canvas) return;
+  
+  const ctx = canvas.getContext('2d');
+  const skills = content.skills || [];
+  
+  if (skills.length === 0) {
+    // Show "No data" message
+    ctx.fillStyle = '#666';
+    ctx.font = '16px Poppins';
+    ctx.textAlign = 'center';
+    ctx.fillText('No skills data', canvas.width / 2, canvas.height / 2);
+    return;
+  }
+  
+  // Clear canvas
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  // Chart settings
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height / 2;
+  const radius = Math.min(centerX, centerY) - 20;
+  
+  // Colors
+  const colors = ['#ffc857', '#ff8c42', '#ff6b35', '#c44536', '#8b2635'];
+  
+  // Calculate angles
+  const total = skills.reduce((sum, skill) => sum + skill.value, 0);
+  let currentAngle = -Math.PI / 2; // Start from top
+  
+  // Draw pie slices
+  skills.forEach((skill, index) => {
+    const sliceAngle = (skill.value / total) * 2 * Math.PI;
+    
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
+    ctx.closePath();
+    ctx.fillStyle = colors[index % colors.length];
+    ctx.fill();
+    
+    // Draw skill name and percentage
+    const labelAngle = currentAngle + sliceAngle / 2;
+    const labelX = centerX + Math.cos(labelAngle) * (radius * 0.7);
+    const labelY = centerY + Math.sin(labelAngle) * (radius * 0.7);
+    
+    ctx.fillStyle = '#fff';
+    ctx.font = '12px Poppins';
+    ctx.textAlign = 'center';
+    ctx.fillText(`${skill.value}%`, labelX, labelY);
+    
+    currentAngle += sliceAngle;
+  });
+  
+  // Draw legend
+  const legendX = 10;
+  let legendY = 20;
+  
+  skills.forEach((skill, index) => {
+    ctx.fillStyle = colors[index % colors.length];
+    ctx.fillRect(legendX, legendY, 12, 12);
+    
+    ctx.fillStyle = '#fff';
+    ctx.font = '12px Poppins';
+    ctx.textAlign = 'left';
+    ctx.fillText(skill.name, legendX + 18, legendY + 10);
+    
+    legendY += 20;
+  });
+}
+
+// Content overview chart
+function renderContentChart() {
+  const canvas = document.getElementById('content-chart');
+  if (!canvas) return;
+  
+  const ctx = canvas.getContext('2d');
+  
+  // Clear canvas
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  // Data
+  const data = [
+    { label: 'Services', value: (content.services || []).length, color: '#ffc857' },
+    { label: 'Projects', value: (content.projects || []).length, color: '#ff8c42' },
+    { label: 'Testimonials', value: (content.testimonials || []).length, color: '#ff6b35' },
+    { label: 'Education', value: (content.education || []).length, color: '#c44536' },
+    { label: 'Experience', value: (content.experience || []).length, color: '#8b2635' }
+  ];
+  
+  // Chart settings
+  const barWidth = 40;
+  const barSpacing = 20;
+  const maxValue = Math.max(...data.map(d => d.value), 1);
+  const chartHeight = canvas.height - 60;
+  const startX = 30;
+  
+  // Draw bars
+  data.forEach((item, index) => {
+    const barHeight = (item.value / maxValue) * chartHeight;
+    const x = startX + index * (barWidth + barSpacing);
+    const y = canvas.height - 40 - barHeight;
+    
+    // Draw bar
+    ctx.fillStyle = item.color;
+    ctx.fillRect(x, y, barWidth, barHeight);
+    
+    // Draw value on top of bar
+    ctx.fillStyle = '#fff';
+    ctx.font = '12px Poppins';
+    ctx.textAlign = 'center';
+    ctx.fillText(item.value.toString(), x + barWidth / 2, y - 5);
+    
+    // Draw label
+    ctx.save();
+    ctx.translate(x + barWidth / 2, canvas.height - 10);
+    ctx.rotate(-Math.PI / 4);
+    ctx.textAlign = 'right';
+    ctx.fillText(item.label, 0, 0);
+    ctx.restore();
+  });
+  
+  // Draw y-axis
+  ctx.strokeStyle = '#666';
+  ctx.beginPath();
+  ctx.moveTo(25, 20);
+  ctx.lineTo(25, canvas.height - 35);
+  ctx.stroke();
+  
+  // Draw y-axis labels
+  ctx.fillStyle = '#999';
+  ctx.font = '10px Poppins';
+  ctx.textAlign = 'right';
+  for (let i = 0; i <= 5; i++) {
+    const value = Math.round((maxValue / 5) * i);
+    const y = canvas.height - 40 - (i / 5) * chartHeight;
+    ctx.fillText(value.toString(), 20, y + 3);
+  }
+}

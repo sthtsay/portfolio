@@ -135,6 +135,24 @@
                 </div>
               </div>
             </div>
+            <div class="dashboard-charts">
+              <h3 class="section-title">Content Overview</h3>
+              <div class="charts-grid">
+                <div class="chart-card">
+                  <h4 class="chart-title">Skills Distribution</h4>
+                  <div class="chart-container">
+                    <canvas id="skills-chart" width="300" height="200"></canvas>
+                  </div>
+                </div>
+                <div class="chart-card">
+                  <h4 class="chart-title">Content Growth</h4>
+                  <div class="chart-container">
+                    <canvas id="content-chart" width="300" height="200"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
             <div class="quick-actions">
               <h3 class="section-title">Quick Actions</h3>
               <div class="action-buttons">
@@ -190,7 +208,7 @@
             <header><h2 class="h2 article-title">Contact Messages</h2></header>
           </article>
 
-          <button type="button" class="save-btn" id="save-btn">
+          <button type="button" class="save-btn" id="save-btn" style="display: none;">
             <ion-icon name="checkmark-outline"></ion-icon>
             <span>Save Changes</span>
           </button>
