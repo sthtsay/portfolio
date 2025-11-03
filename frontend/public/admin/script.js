@@ -55,6 +55,126 @@ function createInput(type, value, placeholder, name, required=false) {
   return input;
 }
 
+// Helper: create date range input
+function createDateRangeInput(yearsValue, name) {
+  const container = document.createElement('div');
+  container.className = 'date-range-container';
+  
+  // Parse existing years value (e.g., "2019 — 2023" or "March 2024 — Present")
+  let startDate = '';
+  let endDate = '';
+  let isPresent = false;
+  
+  if (yearsValue) {
+    const parts = yearsValue.split('—').map(s => s.trim());
+    if (parts.length >= 2) {
+      // Try to parse start date
+      const startPart = parts[0].trim();
+      if (startPart.match(/^\d{4}$/)) {
+        startDate = startPart + '-01';
+      } else if (startPart.match(/^(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}$/)) {
+        const [month, year] = startPart.split(' ');
+        const monthNum = ['January','February','March','April','May','June','July','August','September','October','November','December'].indexOf(month) + 1;
+        startDate = `${year}-${monthNum.toString().padStart(2, '0')}`;
+      }
+      
+      // Try to parse end date
+      const endPart = parts[1].trim();
+      if (endPart.toLowerCase() === 'present') {
+        isPresent = true;
+      } else if (endPart.match(/^\d{4}$/)) {
+        endDate = endPart + '-12';
+      } else if (endPart.match(/^(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}$/)) {
+        const [month, year] = endPart.split(' ');
+        const monthNum = ['January','February','March','April','May','June','July','August','September','October','November','December'].indexOf(month) + 1;
+        endDate = `${year}-${monthNum.toString().padStart(2, '0')}`;
+      }
+    }
+  }
+  
+  // Start date input
+  const startLabel = document.createElement('label');
+  startLabel.textContent = 'Start Date:';
+  const startInput = document.createElement('input');
+  startInput.type = 'month';
+  startInput.value = startDate;
+  startInput.className = 'date-input';
+  
+  // End date input
+  const endLabel = document.createElement('label');
+  endLabel.textContent = 'End Date:';
+  const endInput = document.createElement('input');
+  endInput.type = 'month';
+  endInput.value = endDate;
+  endInput.className = 'date-input';
+  
+  // Present checkbox
+  const presentContainer = document.createElement('div');
+  presentContainer.className = 'present-container';
+  const presentCheckbox = document.createElement('input');
+  presentCheckbox.type = 'checkbox';
+  presentCheckbox.id = `${name}-present`;
+  presentCheckbox.checked = isPresent;
+  const presentLabel = document.createElement('label');
+  presentLabel.htmlFor = `${name}-present`;
+  presentLabel.textContent = 'Present';
+  presentContainer.appendChild(presentCheckbox);
+  presentContainer.appendChild(presentLabel);
+  
+  // Hidden input to store the formatted value
+  const hiddenInput = document.createElement('input');
+  hiddenInput.type = 'hidden';
+  hiddenInput.name = name;
+  
+  // Function to update hidden input value
+  function updateHiddenValue() {
+    if (!startInput.value) {
+      hiddenInput.value = '';
+      return;
+    }
+    
+    const startYear = startInput.value.split('-')[0];
+    const startMonth = startInput.value.split('-')[1];
+    const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const startFormatted = `${monthNames[parseInt(startMonth) - 1]} ${startYear}`;
+    
+    let endFormatted;
+    if (presentCheckbox.checked) {
+      endFormatted = 'Present';
+      endInput.disabled = true;
+    } else {
+      endInput.disabled = false;
+      if (endInput.value) {
+        const endYear = endInput.value.split('-')[0];
+        const endMonth = endInput.value.split('-')[1];
+        endFormatted = `${monthNames[parseInt(endMonth) - 1]} ${endYear}`;
+      } else {
+        endFormatted = 'Present';
+      }
+    }
+    
+    hiddenInput.value = `${startFormatted} — ${endFormatted}`;
+  }
+  
+  // Event listeners
+  startInput.addEventListener('change', updateHiddenValue);
+  endInput.addEventListener('change', updateHiddenValue);
+  presentCheckbox.addEventListener('change', updateHiddenValue);
+  
+  // Initial update
+  updateHiddenValue();
+  
+  // Assemble container
+  container.appendChild(startLabel);
+  container.appendChild(startInput);
+  container.appendChild(endLabel);
+  container.appendChild(endInput);
+  container.appendChild(presentContainer);
+  container.appendChild(hiddenInput);
+  
+  return container;
+}
+
 // Helper: create label+input
 function labeledInput(labelText, input) {
   const div = document.createElement('div');
@@ -302,7 +422,15 @@ function renderEducation() {
     const item = document.createElement('div');
     item.className = 'list-item';
     item.appendChild(labeledInput('School', createInput('text', e.school, 'School', `education-school-${i}`)));
-    item.appendChild(labeledInput('Years', createInput('text', e.years, '2019 — 2023', `education-years-${i}`)));
+    
+    const dateRangeGroup = document.createElement('div');
+    dateRangeGroup.className = 'form-group';
+    const dateLabel = document.createElement('label');
+    dateLabel.textContent = 'Duration';
+    dateRangeGroup.appendChild(dateLabel);
+    dateRangeGroup.appendChild(createDateRangeInput(e.years, `education-years-${i}`));
+    item.appendChild(dateRangeGroup);
+    
     item.appendChild(labeledInput('Text', createInput('textarea', e.text, 'Description', `education-text-${i}`)));
     const remove = document.createElement('button');
     remove.type = 'button';
@@ -332,7 +460,15 @@ function renderExperience() {
     item.className = 'list-item';
     item.appendChild(labeledInput('Title', createInput('text', e.title, 'Title', `experience-title-${i}`)));
     item.appendChild(labeledInput('Company', createInput('text', e.company, 'Company', `experience-company-${i}`)));
-    item.appendChild(labeledInput('Years', createInput('text', e.years, '2020 — 2022', `experience-years-${i}`)));
+    
+    const dateRangeGroup = document.createElement('div');
+    dateRangeGroup.className = 'form-group';
+    const dateLabel = document.createElement('label');
+    dateLabel.textContent = 'Duration';
+    dateRangeGroup.appendChild(dateLabel);
+    dateRangeGroup.appendChild(createDateRangeInput(e.years, `experience-years-${i}`));
+    item.appendChild(dateRangeGroup);
+    
     item.appendChild(labeledInput('Text', createInput('textarea', e.text, 'Description', `experience-text-${i}`)));
     const remove = document.createElement('button');
     remove.type = 'button';
