@@ -314,6 +314,136 @@ document.addEventListener("DOMContentLoaded", function () {
   // Initial testimonial modal setup
   initTestimonialModal();
 
+  // Custom alert function for portfolio
+  function showCustomAlert(title, message, type = 'info') {
+    // Create modal overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'custom-alert-overlay';
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+      backdrop-filter: blur(10px);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    `;
+
+    // Create modal content
+    const modal = document.createElement('div');
+    modal.className = 'custom-alert-modal';
+    
+    const iconMap = {
+      success: 'checkmark-circle',
+      error: 'alert-circle',
+      info: 'information-circle'
+    };
+    
+    const colorMap = {
+      success: '#4CAF50',
+      error: '#f44336',
+      info: '#ffc857'
+    };
+
+    modal.style.cssText = `
+      background: hsl(240, 2%, 12%);
+      border: 1px solid hsl(0, 0%, 22%);
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 24px 80px hsla(0, 0%, 0%, 0.25);
+      transform: translateY(-20px) scale(0.9);
+      transition: all 0.3s ease;
+    `;
+
+    modal.innerHTML = `
+      <div style="
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 20px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        background: ${colorMap[type]}20;
+        color: ${colorMap[type]};
+      ">
+        <ion-icon name="${iconMap[type]}"></ion-icon>
+      </div>
+      <h3 style="
+        color: hsl(0, 0%, 100%);
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 15px;
+        font-family: 'Poppins', sans-serif;
+      ">${title}</h3>
+      <p style="
+        color: hsl(0, 0%, 84%);
+        font-size: 16px;
+        line-height: 1.6;
+        margin-bottom: 25px;
+        font-family: 'Poppins', sans-serif;
+      ">${message}</p>
+      <button style="
+        background: linear-gradient(to bottom right, hsl(45, 100%, 71%) 0%, hsla(36, 100%, 69%, 0) 50%);
+        color: hsl(0, 0%, 7%);
+        border: none;
+        padding: 12px 24px;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-family: 'Poppins', sans-serif;
+        min-width: 100px;
+      " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 16px 40px hsla(0, 0%, 0%, 0.25)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+        OK
+      </button>
+    `;
+
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    // Show modal with animation
+    setTimeout(() => {
+      overlay.style.opacity = '1';
+      modal.style.transform = 'translateY(0) scale(1)';
+    }, 10);
+
+    // Handle close
+    const closeModal = () => {
+      overlay.style.opacity = '0';
+      modal.style.transform = 'translateY(-20px) scale(0.9)';
+      setTimeout(() => {
+        document.body.removeChild(overlay);
+      }, 300);
+    };
+
+    // Event listeners
+    modal.querySelector('button').addEventListener('click', closeModal);
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closeModal();
+    });
+    document.addEventListener('keydown', function escHandler(e) {
+      if (e.key === 'Escape') {
+        closeModal();
+        document.removeEventListener('keydown', escHandler);
+      }
+    });
+  }
+
+  // Make function globally available
+  window.showCustomAlert = showCustomAlert;
+
   // Custom select functionality
   const select = document.querySelector("[data-select]");
   const selectItems = document.querySelectorAll("[data-select-item]");
@@ -414,8 +544,8 @@ document.addEventListener("DOMContentLoaded", function () {
           formBtn.querySelector('span').textContent = 'Message Sent!';
           formBtn.style.background = '#4CAF50';
           
-          // Show success message
-          alert(result.message || 'Thank you for your message! I\'ll get back to you soon.');
+          // Show success message with custom styling
+          showCustomAlert('Message Sent!', result.message || 'Thank you for your message! I\'ll get back to you soon.', 'success');
           
           // Reset button after 3 seconds
           setTimeout(() => {
@@ -428,7 +558,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       } catch (error) {
         console.error('Contact form error:', error);
-        alert('Sorry, there was an error sending your message. Please try again.');
+        showCustomAlert('Error', 'Sorry, there was an error sending your message. Please try again.', 'error');
         
         // Reset button
         formBtn.disabled = false;

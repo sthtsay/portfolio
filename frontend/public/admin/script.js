@@ -229,7 +229,7 @@ function createImageUploadInput(name, currentImagePath) {
     if (!adminToken) {
       const token = await requestAdminToken();
       if (!token) {
-        alert('Admin token is required to upload images.');
+        await customAlert('Authentication Required', 'Admin token is required to upload images.', 'warning');
         fileInputLabel.textContent = 'Choose File';
         return;
       }
@@ -249,11 +249,11 @@ function createImageUploadInput(name, currentImagePath) {
         hiddenInput.value = data.filePath;
         preview.src = `${API_URL}/${data.filePath}`;
       } else {
-        alert('Upload failed: ' + (data.error || 'Unknown error'));
+        await customAlert('Upload Failed', data.error || 'Unknown error occurred during upload.', 'error');
         if (data.error === 'Unauthorized') sessionStorage.removeItem('admin-token');
       }
     })
-    .catch(err => alert('Upload error: ' + err));
+    .catch(async err => await customAlert('Upload Error', 'An error occurred during upload: ' + err.message, 'error'));
   };
   container.appendChild(fileInput);
 
@@ -330,18 +330,18 @@ function renderDashboard() {
           // Trigger add project after ensuring content is rendered
           setTimeout(() => {
             if (!content.projects) content.projects = [];
-            content.projects.push({title:'',category:'',type:'',image:'',alt:''});
+            content.projects.unshift({title:'',category:'',type:'',image:'',alt:''}); // Add to beginning
             renderProjects();
-            showNotification('Success', 'New project form added', 'success');
+            showNotification('Success', 'New project form added at top', 'success');
           }, 200);
           break;
         case 'add-testimonial':
           switchToTab('testimonials');
           setTimeout(() => {
             if (!content.testimonials) content.testimonials = [];
-            content.testimonials.push({avatar:'',name:'',text:''});
+            content.testimonials.unshift({avatar:'',name:'',text:''}); // Add to beginning
             renderTestimonials();
-            showNotification('Success', 'New testimonial form added', 'success');
+            showNotification('Success', 'New testimonial form added at top', 'success');
           }, 200);
           break;
         case 'view-contacts':
@@ -366,6 +366,35 @@ function switchToTab(tabName) {
     navLink.classList.add('active');
     article.classList.add('active');
   }
+}
+
+// Helper function to create list item with new item highlighting
+function createListItem(isNew = false) {
+  const item = document.createElement('div');
+  item.className = isNew ? 'list-item new-item' : 'list-item';
+  
+  if (isNew) {
+    item.style.position = 'relative';
+    const badge = document.createElement('span');
+    badge.className = 'new-item-badge';
+    badge.textContent = 'NEW';
+    item.appendChild(badge);
+    
+    // Remove highlighting after 5 seconds
+    setTimeout(() => {
+      item.classList.remove('new-item');
+      if (badge.parentNode) {
+        badge.remove();
+      }
+    }, 5000);
+  }
+  
+  return item;
+}
+
+// Helper function to check if item is new (empty required fields)
+function isNewItem(item, requiredFields) {
+  return requiredFields.some(field => !item[field] || item[field].trim() === '');
 }
 
 // Enhanced notification system
@@ -401,6 +430,123 @@ function showNotification(title, message, type = 'info') {
   }, 4000);
 }
 
+// Custom Alert Modal
+function customAlert(title, message, type = 'info') {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('alert-modal');
+    const titleEl = document.getElementById('alert-title');
+    const messageEl = document.getElementById('alert-message');
+    const iconEl = document.getElementById('alert-icon');
+    const okBtn = document.getElementById('alert-ok');
+    
+    // Set content
+    titleEl.textContent = title;
+    messageEl.textContent = message;
+    
+    // Set icon based on type
+    const iconMap = {
+      success: 'checkmark-circle-outline',
+      error: 'alert-circle-outline',
+      warning: 'warning-outline',
+      info: 'information-circle-outline'
+    };
+    
+    iconEl.className = `alert-icon ${type}`;
+    iconEl.innerHTML = `<ion-icon name="${iconMap[type]}"></ion-icon>`;
+    
+    // Show modal
+    modal.style.display = 'flex';
+    setTimeout(() => modal.classList.add('active'), 10);
+    
+    // Handle OK button
+    const handleOk = () => {
+      modal.classList.remove('active');
+      setTimeout(() => {
+        modal.style.display = 'none';
+        resolve(true);
+      }, 300);
+      okBtn.removeEventListener('click', handleOk);
+    };
+    
+    okBtn.addEventListener('click', handleOk);
+    
+    // Handle ESC key
+    const handleEsc = (e) => {
+      if (e.key === 'Escape') {
+        handleOk();
+        document.removeEventListener('keydown', handleEsc);
+      }
+    };
+    document.addEventListener('keydown', handleEsc);
+  });
+}
+
+// Custom Confirm Modal
+function customConfirm(title, message, confirmText = 'Confirm', cancelText = 'Cancel') {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('confirm-modal');
+    const titleEl = document.getElementById('confirm-title');
+    const messageEl = document.getElementById('confirm-message');
+    const confirmBtn = document.getElementById('confirm-ok');
+    const cancelBtn = document.getElementById('confirm-cancel');
+    
+    // Set content
+    titleEl.textContent = title;
+    messageEl.textContent = message;
+    confirmBtn.textContent = confirmText;
+    cancelBtn.textContent = cancelText;
+    
+    // Show modal
+    modal.style.display = 'flex';
+    setTimeout(() => modal.classList.add('active'), 10);
+    
+    // Handle confirm button
+    const handleConfirm = () => {
+      modal.classList.remove('active');
+      setTimeout(() => {
+        modal.style.display = 'none';
+        resolve(true);
+      }, 300);
+      cleanup();
+    };
+    
+    // Handle cancel button
+    const handleCancel = () => {
+      modal.classList.remove('active');
+      setTimeout(() => {
+        modal.style.display = 'none';
+        resolve(false);
+      }, 300);
+      cleanup();
+    };
+    
+    // Handle ESC key
+    const handleEsc = (e) => {
+      if (e.key === 'Escape') {
+        handleCancel();
+      }
+    };
+    
+    // Cleanup function
+    const cleanup = () => {
+      confirmBtn.removeEventListener('click', handleConfirm);
+      cancelBtn.removeEventListener('click', handleCancel);
+      document.removeEventListener('keydown', handleEsc);
+    };
+    
+    confirmBtn.addEventListener('click', handleConfirm);
+    cancelBtn.addEventListener('click', handleCancel);
+    document.addEventListener('keydown', handleEsc);
+    
+    // Handle click outside modal
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        handleCancel();
+      }
+    });
+  });
+}
+
 // ABOUT
 function renderAbout() {
   const tab = document.getElementById('tab-about');
@@ -432,9 +578,9 @@ function renderServices() {
     e.preventDefault();
     e.stopPropagation();
     console.log('Adding new service');
-    (content.services = content.services||[]).push({icon:'',title:'',text:''}); 
+    (content.services = content.services||[]).unshift({icon:'',title:'',text:''}); // Add to beginning
     renderServices(); 
-    showNotification('Success', 'New service form added', 'success');
+    showNotification('Success', 'New service form added at top', 'success');
   };
   
   header.appendChild(title);
@@ -444,8 +590,8 @@ function renderServices() {
   const list = document.createElement('div');
   list.className = 'list-section';
   (content.services||[]).forEach((service, i) => {
-    const item = document.createElement('div');
-    item.className = 'list-item';
+    const isNew = i === 0 && isNewItem(service, ['title']);
+    const item = createListItem(isNew);
     item.appendChild(createImageUploadInput(`service-icon-${i}`, service.icon));
     item.appendChild(labeledInput('Title', createInput('text', service.title, 'Service Title', `service-title-${i}`)));
     item.appendChild(labeledInput('Text', createInput('textarea', service.text, 'Service Description', `service-text-${i}`)));
@@ -453,13 +599,19 @@ function renderServices() {
     remove.type = 'button';
     remove.className = 'remove-btn';
     remove.textContent = 'Remove';
-    remove.onclick = (e) => { 
+    remove.onclick = async (e) => { 
       e.preventDefault();
       e.stopPropagation();
-      if (confirm('Are you sure you want to remove this service?')) {
+      const confirmed = await customConfirm(
+        'Remove Service', 
+        'Are you sure you want to remove this service? This action cannot be undone.',
+        'Remove',
+        'Cancel'
+      );
+      if (confirmed) {
         content.services.splice(i,1); 
         renderServices(); 
-        showNotification('Success', 'Service removed', 'success');
+        showNotification('Success', 'Service removed successfully', 'success');
       }
     };
     item.appendChild(remove);
@@ -489,9 +641,9 @@ function renderProjects() {
     e.preventDefault();
     e.stopPropagation();
     console.log('Adding new project');
-    (content.projects = content.projects||[]).push({title:'',category:'',type:'',image:'',alt:''}); 
+    (content.projects = content.projects||[]).unshift({title:'',category:'',type:'',image:'',alt:''}); // Add to beginning
     renderProjects(); 
-    showNotification('Success', 'New project form added', 'success');
+    showNotification('Success', 'New project form added at top', 'success');
   };
   
   header.appendChild(title);
@@ -540,9 +692,9 @@ function renderTestimonials() {
     e.preventDefault();
     e.stopPropagation();
     console.log('Adding new testimonial');
-    (content.testimonials = content.testimonials||[]).push({avatar:'',name:'',text:''}); 
+    (content.testimonials = content.testimonials||[]).unshift({avatar:'',name:'',text:''}); // Add to beginning
     renderTestimonials(); 
-    showNotification('Success', 'New testimonial form added', 'success');
+    showNotification('Success', 'New testimonial form added at top', 'success');
   };
   
   header.appendChild(title);
@@ -652,9 +804,9 @@ function renderCertificates() {
     e.preventDefault();
     e.stopPropagation();
     console.log('Adding new certificate');
-    (content.certificates = content.certificates||[]).push({logo:'',alt:''}); 
+    (content.certificates = content.certificates||[]).unshift({logo:'',alt:''}); // Add to beginning
     renderCertificates(); 
-    showNotification('Success', 'New certificate form added', 'success');
+    showNotification('Success', 'New certificate form added at top', 'success');
   };
   
   header.appendChild(title);
@@ -700,9 +852,9 @@ function renderEducation() {
     e.preventDefault();
     e.stopPropagation();
     console.log('Adding new education');
-    (content.education = content.education||[]).push({school:'',years:'',text:''}); 
+    (content.education = content.education||[]).unshift({school:'',years:'',text:''}); // Add to beginning
     renderEducation(); 
-    showNotification('Success', 'New education form added', 'success');
+    showNotification('Success', 'New education form added at top', 'success');
   };
   
   header.appendChild(title);
@@ -757,9 +909,9 @@ function renderExperience() {
     e.preventDefault();
     e.stopPropagation();
     console.log('Adding new experience');
-    (content.experience = content.experience||[]).push({title:'',company:'',years:'',text:''}); 
+    (content.experience = content.experience||[]).unshift({title:'',company:'',years:'',text:''}); // Add to beginning
     renderExperience(); 
-    showNotification('Success', 'New experience form added', 'success');
+    showNotification('Success', 'New experience form added at top', 'success');
   };
   
   header.appendChild(title);
@@ -815,9 +967,9 @@ function renderSkills() {
     e.preventDefault();
     e.stopPropagation();
     console.log('Adding new skill');
-    (content.skills = content.skills||[]).push({name:'',value:0}); 
+    (content.skills = content.skills||[]).unshift({name:'',value:0}); // Add to beginning
     renderSkills(); 
-    showNotification('Success', 'New skill form added', 'success');
+    showNotification('Success', 'New skill form added at top', 'success');
   };
   
   header.appendChild(title);
@@ -918,18 +1070,24 @@ async function markContactRead(contactId) {
     if (result.success) {
       renderContacts(); // Refresh the contacts list
     } else {
-      alert('Failed to mark contact as read');
+      await customAlert('Operation Failed', 'Failed to mark contact as read. Please try again.', 'error');
     }
   })
-  .catch(err => {
-    alert('Error marking contact as read');
+  .catch(async err => {
+    await customAlert('Network Error', 'Error marking contact as read. Please check your connection.', 'error');
     console.error(err);
   });
 }
 
 // Delete contact
 async function deleteContact(contactId) {
-  if (!confirm('Are you sure you want to delete this contact?')) return;
+  const confirmed = await customConfirm(
+    'Delete Contact', 
+    'Are you sure you want to delete this contact? This action cannot be undone.',
+    'Delete',
+    'Cancel'
+  );
+  if (!confirmed) return;
   
   if (!adminToken) {
     const token = await requestAdminToken();
@@ -945,11 +1103,11 @@ async function deleteContact(contactId) {
     if (result.success) {
       renderContacts(); // Refresh the contacts list
     } else {
-      alert('Failed to delete contact');
+      await customAlert('Delete Failed', 'Failed to delete contact. Please try again.', 'error');
     }
   })
-  .catch(err => {
-    alert('Error deleting contact');
+  .catch(async err => {
+    await customAlert('Network Error', 'Error deleting contact. Please check your connection.', 'error');
     console.error(err);
   });
 }
@@ -959,7 +1117,7 @@ document.getElementById('save-btn').onclick = async function() {
   if (!adminToken) {
     const token = await requestAdminToken();
     if (!token) {
-      alert('Admin token is required to save changes.');
+      await customAlert('Authentication Required', 'Admin token is required to save changes.', 'warning');
       return;
     }
   }
