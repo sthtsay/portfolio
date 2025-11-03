@@ -85,25 +85,13 @@
     {
       "title": "Quality Assurance Automation Engineer",
       "company": "Safaricom Telecommunications Ethiopia PLC",
-      "years": "September 2025 — Present",
-      "text": "I test systems and applications to make sure they work smoothly across different platforms. I also write clear test cases and user guides, and work with the team to find and fix problems before release."
-    },
-    {
-      "title": "Quality Assurance Automation Engineer",
-      "company": "Relevance Lab",
-      "years": "September 2025 — Present",
-      "text": "I test systems and applications to make sure they work smoothly across different platforms. I also write clear test cases and user guides, and work with the team to find and fix problems before release."
-    },
-    {
-      "title": "Quality Assurance Engineer",
-      "company": "Haron Computers",
-      "years": "March 2024 — September 2025",
+      "years": "September 2024 — Present",
       "text": "I test systems and applications to make sure they work smoothly across different platforms. I also write clear test cases and user guides, and work with the team to find and fix problems before release."
     },
     {
       "title": "Quality Assurance & Quality Controller",
       "company": "Matrix Information Technologies",
-      "years": "August 2024 — February 2025",
+      "years": "August 2024 — September 2024",
       "text": "I tested software and systems to make sure they were working properly and were easy to use. I also created helpful documentation and worked closely with the team to fix issues before release."
     },
     {
@@ -111,6 +99,12 @@
       "company": "Forward Logistics Technologies",
       "years": "May 2024 — August 2024",
       "text": "I tested mobile apps to check for bugs and improve user experience. I also wrote simple user guides to help people use the apps more easily."
+    },
+    {
+      "title": "Quality Assurance Engineer",
+      "company": "Haron Computers",
+      "years": "March 2024 — May 2024",
+      "text": "I test systems and applications to make sure they work smoothly across different platforms. I also write clear test cases and user guides, and work with the team to find and fix problems before release."
     }
   ],
   "skills": [
