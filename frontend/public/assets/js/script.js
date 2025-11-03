@@ -84,6 +84,9 @@ document.addEventListener("DOMContentLoaded", function () {
               </div>
             </li>
           `).join('');
+          
+          // Re-initialize testimonial modal functionality after content is loaded
+          initTestimonialModal();
         }
 
         // CERTIFICATES
@@ -218,6 +221,11 @@ document.addEventListener("DOMContentLoaded", function () {
   // Initial fetch
   fetchAndRenderContent();
 
+  // Initialize testimonial modal after DOM is ready
+  setTimeout(() => {
+    initTestimonialModal();
+  }, 100);
+
   // Real-time updates with socket.io
   const script = document.createElement('script');
   script.src = BACKEND_URL + '/socket.io/socket.io.js';
@@ -238,36 +246,73 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Testimonials modal functionality
-  const testimonialsItems = document.querySelectorAll("[data-testimonials-item]");
-  const modalContainer = document.querySelector("[data-modal-container]");
-  const modalCloseBtn = document.querySelector("[data-modal-close-btn]");
-  const overlay = document.querySelector("[data-overlay]");
+  // Initialize testimonial modal functionality
+  function initTestimonialModal() {
+    const testimonialsItems = document.querySelectorAll("[data-testimonials-item]");
+    const modalContainer = document.querySelector("[data-modal-container]");
+    const modalCloseBtn = document.querySelector("[data-modal-close-btn]");
+    const overlay = document.querySelector("[data-overlay]");
 
-  const modalImg = document.querySelector("[data-modal-img]");
-  const modalTitle = document.querySelector("[data-modal-title]");
-  const modalText = document.querySelector("[data-modal-text]");
+    const modalImg = document.querySelector("[data-modal-img]");
+    const modalTitle = document.querySelector("[data-modal-title]");
+    const modalText = document.querySelector("[data-modal-text]");
 
-  const testimonialsModalFunc = function () {
-    modalContainer.classList.toggle("active");
-    overlay.classList.toggle("active");
-  };
+    if (!modalContainer || !modalCloseBtn || !overlay) {
+      console.log('Modal elements not found');
+      return;
+    }
 
-  testimonialsItems.forEach(item => {
-    item.addEventListener("click", function () {
-      modalImg.src = this.querySelector("[data-testimonials-avatar]").src;
-      modalImg.alt = this.querySelector("[data-testimonials-avatar]").alt;
-      modalTitle.innerHTML = this.querySelector("[data-testimonials-title]").innerHTML;
-      modalText.innerHTML = this.querySelector("[data-testimonials-text]").innerHTML;
+    const testimonialsModalFunc = function () {
+      modalContainer.classList.toggle("active");
+      overlay.classList.toggle("active");
+    };
 
-      testimonialsModalFunc();
+    // Add event listeners to testimonial items
+    const newTestimonialsItems = document.querySelectorAll("[data-testimonials-item]");
+    console.log('Found testimonial items:', newTestimonialsItems.length);
+    
+    newTestimonialsItems.forEach((item, index) => {
+      item.addEventListener("click", function () {
+        console.log('Testimonial clicked:', index);
+        
+        const avatar = this.querySelector("[data-testimonials-avatar]");
+        const title = this.querySelector("[data-testimonials-title]");
+        const text = this.querySelector("[data-testimonials-text]");
+        
+        console.log('Modal elements found:', {
+          avatar: !!avatar,
+          title: !!title,
+          text: !!text,
+          modalImg: !!modalImg,
+          modalTitle: !!modalTitle,
+          modalText: !!modalText
+        });
+        
+        if (avatar && title && text && modalImg && modalTitle && modalText) {
+          modalImg.src = avatar.src;
+          modalImg.alt = avatar.alt;
+          modalTitle.innerHTML = title.innerHTML;
+          modalText.innerHTML = text.innerHTML;
+
+          console.log('Opening modal with:', {
+            name: title.innerHTML,
+            text: text.innerHTML.substring(0, 50) + '...'
+          });
+
+          testimonialsModalFunc();
+        } else {
+          console.error('Missing modal elements');
+        }
+      });
     });
-  });
 
-  if (modalCloseBtn && overlay) {
-    modalCloseBtn.addEventListener("click", testimonialsModalFunc);
-    overlay.addEventListener("click", testimonialsModalFunc);
+    // Set up close button listeners (only once)
+    modalCloseBtn.onclick = testimonialsModalFunc;
+    overlay.onclick = testimonialsModalFunc;
   }
+
+  // Initial testimonial modal setup
+  initTestimonialModal();
 
   // Custom select functionality
   const select = document.querySelector("[data-select]");
