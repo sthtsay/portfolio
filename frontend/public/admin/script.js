@@ -36,16 +36,14 @@ tokenCancelBtn.onclick = () => {
 
 // Navigation switching (matching portfolio style)
 document.querySelectorAll('[data-nav-link]').forEach(link => {
-  link.addEventListener('click', function() {
+  link.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
     const pageName = this.dataset.tab;
+    console.log('Navigation clicked:', pageName);
     
-    // Remove active class from all nav links and articles
-    document.querySelectorAll('[data-nav-link]').forEach(navLink => navLink.classList.remove('active'));
-    document.querySelectorAll('.article').forEach(article => article.classList.remove('active'));
-    
-    // Add active class to clicked nav link and corresponding article
-    this.classList.add('active');
-    document.getElementById('tab-' + pageName).classList.add('active');
+    switchToTab(pageName);
     
     // Scroll to top
     window.scrollTo(0, 0);
@@ -320,22 +318,31 @@ function renderDashboard() {
   // Setup quick action buttons
   document.querySelectorAll('[data-action]').forEach(btn => {
     btn.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
       const action = e.currentTarget.dataset.action;
+      console.log('Quick action clicked:', action);
+      
       switch(action) {
         case 'add-project':
           switchToTab('projects');
-          // Trigger add project
+          // Trigger add project after ensuring content is rendered
           setTimeout(() => {
-            const addBtn = document.querySelector('#tab-projects .add-btn');
-            if (addBtn) addBtn.click();
-          }, 100);
+            if (!content.projects) content.projects = [];
+            content.projects.push({title:'',category:'',type:'',image:'',alt:''});
+            renderProjects();
+            showNotification('Success', 'New project form added', 'success');
+          }, 200);
           break;
         case 'add-testimonial':
           switchToTab('testimonials');
           setTimeout(() => {
-            const addBtn = document.querySelector('#tab-testimonials .add-btn');
-            if (addBtn) addBtn.click();
-          }, 100);
+            if (!content.testimonials) content.testimonials = [];
+            content.testimonials.push({avatar:'',name:'',text:''});
+            renderTestimonials();
+            showNotification('Success', 'New testimonial form added', 'success');
+          }, 200);
           break;
         case 'view-contacts':
           switchToTab('contacts');
@@ -421,7 +428,14 @@ function renderServices() {
   add.type = 'button';
   add.className = 'add-btn';
   add.innerHTML = '<ion-icon name="add-outline"></ion-icon> Add Service';
-  add.onclick = () => { (content.services = content.services||[]).push({icon:'',title:'',text:''}); renderServices(); };
+  add.onclick = (e) => { 
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Adding new service');
+    (content.services = content.services||[]).push({icon:'',title:'',text:''}); 
+    renderServices(); 
+    showNotification('Success', 'New service form added', 'success');
+  };
   
   header.appendChild(title);
   header.appendChild(add);
@@ -439,7 +453,15 @@ function renderServices() {
     remove.type = 'button';
     remove.className = 'remove-btn';
     remove.textContent = 'Remove';
-    remove.onclick = () => { content.services.splice(i,1); renderServices(); };
+    remove.onclick = (e) => { 
+      e.preventDefault();
+      e.stopPropagation();
+      if (confirm('Are you sure you want to remove this service?')) {
+        content.services.splice(i,1); 
+        renderServices(); 
+        showNotification('Success', 'Service removed', 'success');
+      }
+    };
     item.appendChild(remove);
     list.appendChild(item);
   });
@@ -463,7 +485,14 @@ function renderProjects() {
   add.type = 'button';
   add.className = 'add-btn';
   add.innerHTML = '<ion-icon name="add-outline"></ion-icon> Add Project';
-  add.onclick = () => { (content.projects = content.projects||[]).push({title:'',category:'',type:'',image:'',alt:''}); renderProjects(); };
+  add.onclick = (e) => { 
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Adding new project');
+    (content.projects = content.projects||[]).push({title:'',category:'',type:'',image:'',alt:''}); 
+    renderProjects(); 
+    showNotification('Success', 'New project form added', 'success');
+  };
   
   header.appendChild(title);
   header.appendChild(add);
@@ -507,7 +536,14 @@ function renderTestimonials() {
   add.type = 'button';
   add.className = 'add-btn';
   add.innerHTML = '<ion-icon name="add-outline"></ion-icon> Add Testimonial';
-  add.onclick = () => { (content.testimonials = content.testimonials||[]).push({avatar:'',name:'',text:''}); renderTestimonials(); };
+  add.onclick = (e) => { 
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Adding new testimonial');
+    (content.testimonials = content.testimonials||[]).push({avatar:'',name:'',text:''}); 
+    renderTestimonials(); 
+    showNotification('Success', 'New testimonial form added', 'success');
+  };
   
   header.appendChild(title);
   header.appendChild(add);
@@ -612,7 +648,14 @@ function renderCertificates() {
   add.type = 'button';
   add.className = 'add-btn';
   add.innerHTML = '<ion-icon name="add-outline"></ion-icon> Add Certificate';
-  add.onclick = () => { (content.certificates = content.certificates||[]).push({logo:'',alt:''}); renderCertificates(); };
+  add.onclick = (e) => { 
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Adding new certificate');
+    (content.certificates = content.certificates||[]).push({logo:'',alt:''}); 
+    renderCertificates(); 
+    showNotification('Success', 'New certificate form added', 'success');
+  };
   
   header.appendChild(title);
   header.appendChild(add);
@@ -653,7 +696,14 @@ function renderEducation() {
   add.type = 'button';
   add.className = 'add-btn';
   add.innerHTML = '<ion-icon name="add-outline"></ion-icon> Add Education';
-  add.onclick = () => { (content.education = content.education||[]).push({school:'',years:'',text:''}); renderEducation(); };
+  add.onclick = (e) => { 
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Adding new education');
+    (content.education = content.education||[]).push({school:'',years:'',text:''}); 
+    renderEducation(); 
+    showNotification('Success', 'New education form added', 'success');
+  };
   
   header.appendChild(title);
   header.appendChild(add);
@@ -703,7 +753,14 @@ function renderExperience() {
   add.type = 'button';
   add.className = 'add-btn';
   add.innerHTML = '<ion-icon name="add-outline"></ion-icon> Add Experience';
-  add.onclick = () => { (content.experience = content.experience||[]).push({title:'',company:'',years:'',text:''}); renderExperience(); };
+  add.onclick = (e) => { 
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Adding new experience');
+    (content.experience = content.experience||[]).push({title:'',company:'',years:'',text:''}); 
+    renderExperience(); 
+    showNotification('Success', 'New experience form added', 'success');
+  };
   
   header.appendChild(title);
   header.appendChild(add);
@@ -754,7 +811,14 @@ function renderSkills() {
   add.type = 'button';
   add.className = 'add-btn';
   add.innerHTML = '<ion-icon name="add-outline"></ion-icon> Add Skill';
-  add.onclick = () => { (content.skills = content.skills||[]).push({name:'',value:0}); renderSkills(); };
+  add.onclick = (e) => { 
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Adding new skill');
+    (content.skills = content.skills||[]).push({name:'',value:0}); 
+    renderSkills(); 
+    showNotification('Success', 'New skill form added', 'success');
+  };
   
   header.appendChild(title);
   header.appendChild(add);
