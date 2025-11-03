@@ -308,6 +308,25 @@ function renderAbout() {
 function renderServices() {
   const tab = document.getElementById('tab-services');
   tab.innerHTML = '';
+  
+  // Create section header with add button
+  const header = document.createElement('div');
+  header.className = 'section-header';
+  
+  const title = document.createElement('h3');
+  title.className = 'section-title';
+  title.textContent = 'Services';
+  
+  const add = document.createElement('button');
+  add.type = 'button';
+  add.className = 'add-btn';
+  add.innerHTML = '<ion-icon name="add-outline"></ion-icon> Add Service';
+  add.onclick = () => { (content.services = content.services||[]).push({icon:'',title:'',text:''}); renderServices(); };
+  
+  header.appendChild(title);
+  header.appendChild(add);
+  tab.appendChild(header);
+  
   const list = document.createElement('div');
   list.className = 'list-section';
   (content.services||[]).forEach((service, i) => {
@@ -324,19 +343,32 @@ function renderServices() {
     item.appendChild(remove);
     list.appendChild(item);
   });
-  const add = document.createElement('button');
-  add.type = 'button';
-  add.className = 'add-btn';
-  add.textContent = '+ Add Service';
-  add.onclick = () => { (content.services = content.services||[]).push({icon:'',title:'',text:''}); renderServices(); };
   tab.appendChild(list);
-  tab.appendChild(add);
 }
 
 // PROJECTS
 function renderProjects() {
   const tab = document.getElementById('tab-projects');
   tab.innerHTML = '';
+  
+  // Create section header with add button
+  const header = document.createElement('div');
+  header.className = 'section-header';
+  
+  const title = document.createElement('h3');
+  title.className = 'section-title';
+  title.textContent = 'Projects';
+  
+  const add = document.createElement('button');
+  add.type = 'button';
+  add.className = 'add-btn';
+  add.innerHTML = '<ion-icon name="add-outline"></ion-icon> Add Project';
+  add.onclick = () => { (content.projects = content.projects||[]).push({title:'',category:'',type:'',image:'',alt:''}); renderProjects(); };
+  
+  header.appendChild(title);
+  header.appendChild(add);
+  tab.appendChild(header);
+  
   const list = document.createElement('div');
   list.className = 'list-section';
   (content.projects||[]).forEach((project, i) => {
@@ -355,31 +387,45 @@ function renderProjects() {
     item.appendChild(remove);
     list.appendChild(item);
   });
-  const add = document.createElement('button');
-  add.type = 'button';
-  add.className = 'add-btn';
-  add.textContent = '+ Add Project';
-  add.onclick = () => { (content.projects = content.projects||[]).push({title:'',category:'',type:'',image:'',alt:''}); renderProjects(); };
   tab.appendChild(list);
-  tab.appendChild(add);
 }
 
 // TESTIMONIALS
 function renderTestimonials() {
   const tab = document.getElementById('tab-testimonials');
   tab.innerHTML = '';
+  
+  // Create section header with add button
+  const header = document.createElement('div');
+  header.className = 'section-header';
+  
+  const title = document.createElement('h3');
+  title.className = 'section-title';
+  title.textContent = 'Testimonials';
+  
+  const add = document.createElement('button');
+  add.type = 'button';
+  add.className = 'add-btn';
+  add.innerHTML = '<ion-icon name="add-outline"></ion-icon> Add Testimonial';
+  add.onclick = () => { (content.testimonials = content.testimonials||[]).push({avatar:'',name:'',text:''}); renderTestimonials(); };
+  
+  header.appendChild(title);
+  header.appendChild(add);
+  tab.appendChild(header);
+  
   const list = document.createElement('div');
   list.className = 'list-section';
   (content.testimonials||[]).forEach((t, i) => {
     const item = document.createElement('div');
     item.className = 'list-item';
     
-    // Add preview button
+    // Add preview button at the top
     const previewBtn = document.createElement('button');
     previewBtn.type = 'button';
     previewBtn.className = 'btn';
     previewBtn.innerHTML = '<ion-icon name="eye-outline"></ion-icon> Preview';
     previewBtn.onclick = () => showTestimonialModal(t);
+    previewBtn.style.marginBottom = '15px';
     item.appendChild(previewBtn);
     
     item.appendChild(createImageUploadInput(`testimonial-avatar-${i}`, t.avatar));
@@ -393,13 +439,7 @@ function renderTestimonials() {
     item.appendChild(remove);
     list.appendChild(item);
   });
-  const add = document.createElement('button');
-  add.type = 'button';
-  add.className = 'add-btn';
-  add.textContent = '+ Add Testimonial';
-  add.onclick = () => { (content.testimonials = content.testimonials||[]).push({avatar:'',name:'',text:''}); renderTestimonials(); };
   tab.appendChild(list);
-  tab.appendChild(add);
 }
 
 // Show testimonial modal
@@ -409,32 +449,75 @@ function showTestimonialModal(testimonial) {
   const name = document.getElementById('modal-testimonial-name');
   const text = document.getElementById('modal-testimonial-text');
   
-  // Set content
-  avatar.src = testimonial.avatar.startsWith('uploads/') ? `${API_URL}/${testimonial.avatar}` : `./assets/images/${testimonial.avatar}`;
-  avatar.alt = testimonial.name;
-  name.textContent = testimonial.name;
-  text.innerHTML = `<p>${testimonial.text}</p>`;
+  console.log('Showing testimonial modal for:', testimonial); // Debug log
   
-  // Show modal
-  modal.classList.add('active');
+  // Set content
+  if (testimonial.avatar) {
+    avatar.src = testimonial.avatar.startsWith('uploads/') ? `${API_URL}/${testimonial.avatar}` : `./assets/images/${testimonial.avatar}`;
+  } else {
+    avatar.src = './assets/images/avatar-1.png'; // Default avatar
+  }
+  avatar.alt = testimonial.name || 'Testimonial';
+  name.textContent = testimonial.name || 'Anonymous';
+  text.innerHTML = `<p>${testimonial.text || 'No testimonial text available.'}</p>`;
+  
+  // Show modal with display block first, then add active class
+  modal.style.display = 'flex';
+  setTimeout(() => {
+    modal.classList.add('active');
+  }, 10);
 }
 
 // Close testimonial modal
-document.getElementById('testimonial-close-btn').onclick = () => {
-  document.getElementById('testimonial-modal').classList.remove('active');
-};
+function closeTestimonialModal() {
+  const modal = document.getElementById('testimonial-modal');
+  modal.classList.remove('active');
+  setTimeout(() => {
+    modal.style.display = 'none';
+  }, 250); // Wait for transition to complete
+}
 
-// Close modal when clicking overlay
-document.getElementById('testimonial-modal').onclick = (e) => {
-  if (e.target.id === 'testimonial-modal') {
-    document.getElementById('testimonial-modal').classList.remove('active');
+// Set up modal close events when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+  const closeBtn = document.getElementById('testimonial-close-btn');
+  const modal = document.getElementById('testimonial-modal');
+  
+  if (closeBtn) {
+    closeBtn.onclick = closeTestimonialModal;
   }
-};
+  
+  if (modal) {
+    modal.onclick = (e) => {
+      if (e.target.id === 'testimonial-modal') {
+        closeTestimonialModal();
+      }
+    };
+  }
+});
 
 // CERTIFICATES
 function renderCertificates() {
   const tab = document.getElementById('tab-certificates');
   tab.innerHTML = '';
+  
+  // Create section header with add button
+  const header = document.createElement('div');
+  header.className = 'section-header';
+  
+  const title = document.createElement('h3');
+  title.className = 'section-title';
+  title.textContent = 'Certificates';
+  
+  const add = document.createElement('button');
+  add.type = 'button';
+  add.className = 'add-btn';
+  add.innerHTML = '<ion-icon name="add-outline"></ion-icon> Add Certificate';
+  add.onclick = () => { (content.certificates = content.certificates||[]).push({logo:'',alt:''}); renderCertificates(); };
+  
+  header.appendChild(title);
+  header.appendChild(add);
+  tab.appendChild(header);
+  
   const list = document.createElement('div');
   list.className = 'list-section';
   (content.certificates||[]).forEach((c, i) => {
@@ -450,19 +533,32 @@ function renderCertificates() {
     item.appendChild(remove);
     list.appendChild(item);
   });
-  const add = document.createElement('button');
-  add.type = 'button';
-  add.className = 'add-btn';
-  add.textContent = '+ Add Certificate';
-  add.onclick = () => { (content.certificates = content.certificates||[]).push({logo:'',alt:''}); renderCertificates(); };
   tab.appendChild(list);
-  tab.appendChild(add);
 }
 
 // EDUCATION
 function renderEducation() {
   const tab = document.getElementById('tab-education');
   tab.innerHTML = '';
+  
+  // Create section header with add button
+  const header = document.createElement('div');
+  header.className = 'section-header';
+  
+  const title = document.createElement('h3');
+  title.className = 'section-title';
+  title.textContent = 'Education';
+  
+  const add = document.createElement('button');
+  add.type = 'button';
+  add.className = 'add-btn';
+  add.innerHTML = '<ion-icon name="add-outline"></ion-icon> Add Education';
+  add.onclick = () => { (content.education = content.education||[]).push({school:'',years:'',text:''}); renderEducation(); };
+  
+  header.appendChild(title);
+  header.appendChild(add);
+  tab.appendChild(header);
+  
   const list = document.createElement('div');
   list.className = 'list-section';
   (content.education||[]).forEach((e, i) => {
@@ -487,19 +583,32 @@ function renderEducation() {
     item.appendChild(remove);
     list.appendChild(item);
   });
-  const add = document.createElement('button');
-  add.type = 'button';
-  add.className = 'add-btn';
-  add.textContent = '+ Add Education';
-  add.onclick = () => { (content.education = content.education||[]).push({school:'',years:'',text:''}); renderEducation(); };
   tab.appendChild(list);
-  tab.appendChild(add);
 }
 
 // EXPERIENCE
 function renderExperience() {
   const tab = document.getElementById('tab-experience');
   tab.innerHTML = '';
+  
+  // Create section header with add button
+  const header = document.createElement('div');
+  header.className = 'section-header';
+  
+  const title = document.createElement('h3');
+  title.className = 'section-title';
+  title.textContent = 'Experience';
+  
+  const add = document.createElement('button');
+  add.type = 'button';
+  add.className = 'add-btn';
+  add.innerHTML = '<ion-icon name="add-outline"></ion-icon> Add Experience';
+  add.onclick = () => { (content.experience = content.experience||[]).push({title:'',company:'',years:'',text:''}); renderExperience(); };
+  
+  header.appendChild(title);
+  header.appendChild(add);
+  tab.appendChild(header);
+  
   const list = document.createElement('div');
   list.className = 'list-section';
   (content.experience||[]).forEach((e, i) => {
@@ -525,19 +634,32 @@ function renderExperience() {
     item.appendChild(remove);
     list.appendChild(item);
   });
-  const add = document.createElement('button');
-  add.type = 'button';
-  add.className = 'add-btn';
-  add.textContent = '+ Add Experience';
-  add.onclick = () => { (content.experience = content.experience||[]).push({title:'',company:'',years:'',text:''}); renderExperience(); };
   tab.appendChild(list);
-  tab.appendChild(add);
 }
 
 // SKILLS
 function renderSkills() {
   const tab = document.getElementById('tab-skills');
   tab.innerHTML = '';
+  
+  // Create section header with add button
+  const header = document.createElement('div');
+  header.className = 'section-header';
+  
+  const title = document.createElement('h3');
+  title.className = 'section-title';
+  title.textContent = 'Skills';
+  
+  const add = document.createElement('button');
+  add.type = 'button';
+  add.className = 'add-btn';
+  add.innerHTML = '<ion-icon name="add-outline"></ion-icon> Add Skill';
+  add.onclick = () => { (content.skills = content.skills||[]).push({name:'',value:0}); renderSkills(); };
+  
+  header.appendChild(title);
+  header.appendChild(add);
+  tab.appendChild(header);
+  
   const list = document.createElement('div');
   list.className = 'list-section';
   (content.skills||[]).forEach((s, i) => {
@@ -553,13 +675,7 @@ function renderSkills() {
     item.appendChild(remove);
     list.appendChild(item);
   });
-  const add = document.createElement('button');
-  add.type = 'button';
-  add.className = 'add-btn';
-  add.textContent = '+ Add Skill';
-  add.onclick = () => { (content.skills = content.skills||[]).push({name:'',value:0}); renderSkills(); };
   tab.appendChild(list);
-  tab.appendChild(add);
 }
 
 // CONTACTS
