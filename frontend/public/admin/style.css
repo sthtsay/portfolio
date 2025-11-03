@@ -1820,8 +1820,29 @@ tacts Management Styles */
   color: var(--white-1);
   font-size: var(--fs-5);
   font-weight: var(--fw-600);
-  margin-bottom: 20px;
+  margin-bottom: 5px;
   text-align: center;
+}
+
+.chart-subtitle {
+  color: var(--light-gray-70);
+  font-size: var(--fs-7);
+  text-align: center;
+  margin-bottom: 15px;
+  font-style: italic;
+}
+
+.interactive-chart {
+  transition: var(--transition-1);
+}
+
+.interactive-chart:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-5);
+}
+
+.interactive-chart:hover .chart-title {
+  color: var(--orange-yellow-crayola);
 }
 
 .chart-container {

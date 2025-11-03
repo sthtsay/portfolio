@@ -1253,7 +1253,7 @@ function renderCharts() {
   renderContentChart();
 }
 
-// Skills distribution chart
+// Skills distribution chart with interactivity
 function renderSkillsChart() {
   const canvas = document.getElementById('skills-chart');
   if (!canvas) return;
@@ -1262,11 +1262,18 @@ function renderSkillsChart() {
   const skills = content.skills || [];
   
   if (skills.length === 0) {
-    // Show "No data" message
+    // Show "No data" message with call to action
     ctx.fillStyle = '#666';
     ctx.font = '16px Poppins';
     ctx.textAlign = 'center';
-    ctx.fillText('No skills data', canvas.width / 2, canvas.height / 2);
+    ctx.fillText('No skills data', canvas.width / 2, canvas.height / 2 - 10);
+    ctx.fillStyle = '#ffc857';
+    ctx.font = '12px Poppins';
+    ctx.fillText('Click "Skills" to add your skills', canvas.width / 2, canvas.height / 2 + 10);
+    
+    // Make canvas clickable to go to skills
+    canvas.onclick = () => switchToTab('skills');
+    canvas.style.cursor = 'pointer';
     return;
   }
   
@@ -1276,18 +1283,28 @@ function renderSkillsChart() {
   // Chart settings
   const centerX = canvas.width / 2;
   const centerY = canvas.height / 2;
-  const radius = Math.min(centerX, centerY) - 20;
+  const radius = Math.min(centerX, centerY) - 40;
   
-  // Colors
-  const colors = ['#ffc857', '#ff8c42', '#ff6b35', '#c44536', '#8b2635'];
+  // Colors with better contrast
+  const colors = ['#ffc857', '#ff8c42', '#ff6b35', '#c44536', '#8b2635', '#6a994e', '#386641'];
   
-  // Calculate angles
+  // Calculate angles and store slice data for interactivity
   const total = skills.reduce((sum, skill) => sum + skill.value, 0);
-  let currentAngle = -Math.PI / 2; // Start from top
+  let currentAngle = -Math.PI / 2;
+  const slices = [];
   
-  // Draw pie slices
+  // Draw pie slices and store data
   skills.forEach((skill, index) => {
     const sliceAngle = (skill.value / total) * 2 * Math.PI;
+    
+    // Store slice data for hover detection
+    slices.push({
+      skill: skill,
+      startAngle: currentAngle,
+      endAngle: currentAngle + sliceAngle,
+      color: colors[index % colors.length],
+      index: index
+    });
     
     ctx.beginPath();
     ctx.moveTo(centerX, centerY);
@@ -1296,37 +1313,107 @@ function renderSkillsChart() {
     ctx.fillStyle = colors[index % colors.length];
     ctx.fill();
     
-    // Draw skill name and percentage
-    const labelAngle = currentAngle + sliceAngle / 2;
-    const labelX = centerX + Math.cos(labelAngle) * (radius * 0.7);
-    const labelY = centerY + Math.sin(labelAngle) * (radius * 0.7);
+    // Add subtle border
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 2;
+    ctx.stroke();
     
-    ctx.fillStyle = '#fff';
-    ctx.font = '12px Poppins';
-    ctx.textAlign = 'center';
-    ctx.fillText(`${skill.value}%`, labelX, labelY);
+    // Draw percentage in center of slice
+    if (sliceAngle > 0.3) { // Only show percentage if slice is big enough
+      const labelAngle = currentAngle + sliceAngle / 2;
+      const labelX = centerX + Math.cos(labelAngle) * (radius * 0.7);
+      const labelY = centerY + Math.sin(labelAngle) * (radius * 0.7);
+      
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 12px Poppins';
+      ctx.textAlign = 'center';
+      ctx.fillText(`${skill.value}%`, labelX, labelY);
+    }
     
     currentAngle += sliceAngle;
   });
   
-  // Draw legend
+  // Interactive legend
   const legendX = 10;
   let legendY = 20;
+  const legendItems = [];
   
   skills.forEach((skill, index) => {
+    const legendItem = {
+      x: legendX,
+      y: legendY,
+      width: 150,
+      height: 18,
+      skill: skill,
+      color: colors[index % colors.length]
+    };
+    legendItems.push(legendItem);
+    
+    // Draw legend item
     ctx.fillStyle = colors[index % colors.length];
     ctx.fillRect(legendX, legendY, 12, 12);
     
     ctx.fillStyle = '#fff';
     ctx.font = '12px Poppins';
     ctx.textAlign = 'left';
-    ctx.fillText(skill.name, legendX + 18, legendY + 10);
+    ctx.fillText(`${skill.name} (${skill.value}%)`, legendX + 18, legendY + 10);
     
     legendY += 20;
   });
+  
+  // Add interactivity
+  let hoveredSlice = null;
+  
+  canvas.onmousemove = (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    // Check if mouse is over a slice
+    const dx = x - centerX;
+    const dy = y - centerY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    if (distance <= radius) {
+      const angle = Math.atan2(dy, dx);
+      const normalizedAngle = angle < -Math.PI / 2 ? angle + 2 * Math.PI : angle;
+      
+      hoveredSlice = null;
+      slices.forEach(slice => {
+        let startAngle = slice.startAngle;
+        let endAngle = slice.endAngle;
+        
+        // Normalize angles
+        if (startAngle < -Math.PI / 2) startAngle += 2 * Math.PI;
+        if (endAngle < -Math.PI / 2) endAngle += 2 * Math.PI;
+        
+        if (normalizedAngle >= startAngle && normalizedAngle <= endAngle) {
+          hoveredSlice = slice;
+        }
+      });
+      
+      canvas.style.cursor = hoveredSlice ? 'pointer' : 'default';
+      
+      // Show tooltip
+      if (hoveredSlice) {
+        canvas.title = `${hoveredSlice.skill.name}: ${hoveredSlice.skill.value}%`;
+      }
+    } else {
+      canvas.style.cursor = 'default';
+      hoveredSlice = null;
+    }
+  };
+  
+  canvas.onclick = (e) => {
+    if (hoveredSlice) {
+      // Navigate to skills and highlight the clicked skill
+      switchToTab('skills');
+      showNotification('Info', `Clicked on ${hoveredSlice.skill.name} (${hoveredSlice.skill.value}%)`, 'info');
+    }
+  };
 }
 
-// Content overview chart
+// Portfolio completion chart with meaningful data
 function renderContentChart() {
   const canvas = document.getElementById('content-chart');
   if (!canvas) return;
@@ -1336,61 +1423,160 @@ function renderContentChart() {
   // Clear canvas
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   
-  // Data
-  const data = [
-    { label: 'Services', value: (content.services || []).length, color: '#ffc857' },
-    { label: 'Projects', value: (content.projects || []).length, color: '#ff8c42' },
-    { label: 'Testimonials', value: (content.testimonials || []).length, color: '#ff6b35' },
-    { label: 'Education', value: (content.education || []).length, color: '#c44536' },
-    { label: 'Experience', value: (content.experience || []).length, color: '#8b2635' }
+  // Calculate meaningful completion data
+  const portfolioData = [
+    { 
+      label: 'About', 
+      current: content.about && content.about.name && content.about.description ? 1 : 0,
+      target: 1,
+      color: '#ffc857',
+      tab: 'about'
+    },
+    { 
+      label: 'Services', 
+      current: (content.services || []).length,
+      target: 4, // Recommended number of services
+      color: '#ff8c42',
+      tab: 'services'
+    },
+    { 
+      label: 'Projects', 
+      current: (content.projects || []).length,
+      target: 6, // Recommended number of projects
+      color: '#ff6b35',
+      tab: 'projects'
+    },
+    { 
+      label: 'Testimonials', 
+      current: (content.testimonials || []).length,
+      target: 5, // Recommended number of testimonials
+      color: '#c44536',
+      tab: 'testimonials'
+    },
+    { 
+      label: 'Skills', 
+      current: (content.skills || []).length,
+      target: 5, // Recommended number of skills
+      color: '#8b2635',
+      tab: 'skills'
+    }
   ];
   
   // Chart settings
-  const barWidth = 40;
-  const barSpacing = 20;
-  const maxValue = Math.max(...data.map(d => d.value), 1);
-  const chartHeight = canvas.height - 60;
-  const startX = 30;
+  const barWidth = 45;
+  const barSpacing = 15;
+  const chartHeight = canvas.height - 80;
+  const startX = 40;
+  const maxTarget = Math.max(...portfolioData.map(d => d.target));
   
-  // Draw bars
-  data.forEach((item, index) => {
-    const barHeight = (item.value / maxValue) * chartHeight;
+  // Store bar positions for interactivity
+  const bars = [];
+  
+  // Draw completion bars
+  portfolioData.forEach((item, index) => {
     const x = startX + index * (barWidth + barSpacing);
-    const y = canvas.height - 40 - barHeight;
+    const completionPercentage = Math.min(item.current / item.target, 1);
     
-    // Draw bar
-    ctx.fillStyle = item.color;
-    ctx.fillRect(x, y, barWidth, barHeight);
+    // Background bar (target)
+    const targetBarHeight = (item.target / maxTarget) * chartHeight;
+    const targetY = canvas.height - 60 - targetBarHeight;
     
-    // Draw value on top of bar
+    ctx.fillStyle = '#333';
+    ctx.fillRect(x, targetY, barWidth, targetBarHeight);
+    
+    // Completion bar (current)
+    const currentBarHeight = (item.current / maxTarget) * chartHeight;
+    const currentY = canvas.height - 60 - currentBarHeight;
+    
+    // Gradient for completion bar
+    const gradient = ctx.createLinearGradient(0, currentY, 0, currentY + currentBarHeight);
+    gradient.addColorStop(0, item.color);
+    gradient.addColorStop(1, item.color + '80');
+    
+    ctx.fillStyle = gradient;
+    ctx.fillRect(x, currentY, barWidth, currentBarHeight);
+    
+    // Store bar data for interactivity
+    bars.push({
+      x: x,
+      y: targetY,
+      width: barWidth,
+      height: targetBarHeight,
+      item: item,
+      completionPercentage: completionPercentage
+    });
+    
+    // Draw completion percentage
     ctx.fillStyle = '#fff';
-    ctx.font = '12px Poppins';
+    ctx.font = 'bold 11px Poppins';
     ctx.textAlign = 'center';
-    ctx.fillText(item.value.toString(), x + barWidth / 2, y - 5);
+    const percentage = Math.round(completionPercentage * 100);
+    ctx.fillText(`${percentage}%`, x + barWidth / 2, currentY - 8);
+    
+    // Draw current/target values
+    ctx.fillStyle = '#ccc';
+    ctx.font = '10px Poppins';
+    ctx.fillText(`${item.current}/${item.target}`, x + barWidth / 2, currentY - 20);
     
     // Draw label
     ctx.save();
-    ctx.translate(x + barWidth / 2, canvas.height - 10);
-    ctx.rotate(-Math.PI / 4);
-    ctx.textAlign = 'right';
+    ctx.translate(x + barWidth / 2, canvas.height - 15);
+    ctx.fillStyle = '#fff';
+    ctx.font = '11px Poppins';
+    ctx.textAlign = 'center';
     ctx.fillText(item.label, 0, 0);
     ctx.restore();
   });
   
-  // Draw y-axis
-  ctx.strokeStyle = '#666';
-  ctx.beginPath();
-  ctx.moveTo(25, 20);
-  ctx.lineTo(25, canvas.height - 35);
-  ctx.stroke();
+  // Draw title
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 14px Poppins';
+  ctx.textAlign = 'center';
+  ctx.fillText('Portfolio Completion Status', canvas.width / 2, 20);
   
-  // Draw y-axis labels
+  // Draw legend
   ctx.fillStyle = '#999';
   ctx.font = '10px Poppins';
-  ctx.textAlign = 'right';
-  for (let i = 0; i <= 5; i++) {
-    const value = Math.round((maxValue / 5) * i);
-    const y = canvas.height - 40 - (i / 5) * chartHeight;
-    ctx.fillText(value.toString(), 20, y + 3);
-  }
+  ctx.textAlign = 'left';
+  ctx.fillText('■ Target', 10, canvas.height - 45);
+  ctx.fillStyle = '#ffc857';
+  ctx.fillText('■ Current', 10, canvas.height - 30);
+  
+  // Add interactivity
+  let hoveredBar = null;
+  
+  canvas.onmousemove = (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    hoveredBar = null;
+    bars.forEach(bar => {
+      if (x >= bar.x && x <= bar.x + bar.width && 
+          y >= bar.y && y <= bar.y + bar.height) {
+        hoveredBar = bar;
+      }
+    });
+    
+    canvas.style.cursor = hoveredBar ? 'pointer' : 'default';
+    
+    if (hoveredBar) {
+      const item = hoveredBar.item;
+      const percentage = Math.round(hoveredBar.completionPercentage * 100);
+      canvas.title = `${item.label}: ${item.current}/${item.target} (${percentage}% complete)`;
+    }
+  };
+  
+  canvas.onclick = (e) => {
+    if (hoveredBar) {
+      const item = hoveredBar.item;
+      switchToTab(item.tab);
+      
+      if (hoveredBar.completionPercentage < 1) {
+        showNotification('Suggestion', `Your ${item.label} section needs ${item.target - item.current} more items to be complete`, 'info');
+      } else {
+        showNotification('Great!', `Your ${item.label} section is complete!`, 'success');
+      }
+    }
+  };
 }
