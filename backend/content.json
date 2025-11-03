@@ -71,13 +71,18 @@
   ],
   "education": [
     {
+      "school": "Test School",
+      "years": "November 2025 — December 2025",
+      "text": "This is a test entry that should appear first due to chronological sorting."
+    },
+    {
       "school": "Bonga University",
-      "years": "2019 — 2023",
+      "years": "January 2019 — December 2023",
       "text": "Developed a strong IT foundation, earning a GPA of 3.56, and gained key leadership and technical skills by leading a graduation project and managing the university's computer systems"
     },
     {
       "school": "Ethio National School",
-      "years": "2015 — 2019",
+      "years": "January 2015 — December 2019",
       "text": "Developed an interest in technology by participating in the coding club and excelling in computer science courses. I also took the initiative to learn programming through online resources and worked on personal tech projects."
     }
   ],

@@ -162,26 +162,57 @@ app.post('/api/update-content', checkAdminToken, async (req, res) => {
 
   const content = req.body;
 
-  // Helper: extract END year safely
-  const getEndYear = (years) => {
-    if (!years || years.trim() === '') return new Date().getFullYear() + 1; // Treat missing as "Present"
+  // Helper: extract END year and month safely for better sorting
+  const getEndDate = (years) => {
+    if (!years || years.trim() === '') return { year: new Date().getFullYear() + 1, month: 12 }; // Treat missing as "Present"
+    
     const parts = years.split('—').map(s => s.trim());
     if (parts.length < 2) {
-      return parseInt(parts[0]) || new Date().getFullYear() + 1;
+      const year = parseInt(parts[0]) || new Date().getFullYear() + 1;
+      return { year, month: 12 };
     }
+    
     const end = parts[1];
-    if (/present/i.test(end)) return new Date().getFullYear() + 1;
-    return parseInt(end) || new Date().getFullYear() + 1;
+    if (/present/i.test(end)) return { year: new Date().getFullYear() + 1, month: 12 };
+    
+    // Handle "Month YYYY" format (e.g., "December 2023")
+    const monthYearMatch = end.match(/^(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})$/);
+    if (monthYearMatch) {
+      const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      const month = monthNames.indexOf(monthYearMatch[1]) + 1;
+      const year = parseInt(monthYearMatch[2]);
+      return { year, month };
+    }
+    
+    // Handle "YYYY" format
+    const year = parseInt(end) || new Date().getFullYear() + 1;
+    return { year, month: 12 };
   };
 
-  // --- Sort education by END year (desc) ---
+  // Helper: compare two dates for sorting (most recent first)
+  const compareDates = (dateA, dateB) => {
+    if (dateA.year !== dateB.year) {
+      return dateB.year - dateA.year; // Sort by year descending
+    }
+    return dateB.month - dateA.month; // If same year, sort by month descending
+  };
+
+  // --- Sort education by END date (desc) ---
   if (content.education) {
-    content.education.sort((a, b) => getEndYear(b.years) - getEndYear(a.years));
+    content.education.sort((a, b) => {
+      const dateA = getEndDate(a.years);
+      const dateB = getEndDate(b.years);
+      return compareDates(dateA, dateB);
+    });
   }
 
-  // --- Sort experience by END year (desc) ---
+  // --- Sort experience by END date (desc) ---
   if (content.experience) {
-    content.experience.sort((a, b) => getEndYear(b.years) - getEndYear(a.years));
+    content.experience.sort((a, b) => {
+      const dateA = getEndDate(a.years);
+      const dateB = getEndDate(b.years);
+      return compareDates(dateA, dateB);
+    });
   }
 
   try {
