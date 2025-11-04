@@ -9,6 +9,10 @@ function getImageUrl(path) {
   if (path.startsWith('uploads/')) {
     return `${BACKEND_URL}/${path}`;
   }
+  // If path already starts with assets/ or ./, return as is
+  if (path.startsWith('assets/') || path.startsWith('./')) {
+    return path;
+  }
   return `./assets/images/${path}`;
 }
 
