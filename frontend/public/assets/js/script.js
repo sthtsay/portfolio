@@ -498,16 +498,108 @@ document.addEventListener("DOMContentLoaded", function () {
   const formInputs = document.querySelectorAll("[data-form-input]");
   const formBtn = document.querySelector("[data-form-btn]");
 
-  // Form validation
-  formInputs.forEach(input => {
-    input.addEventListener("input", function () {
-      if (form.checkValidity()) {
-        formBtn.removeAttribute("disabled");
+  // Enhanced form validation with real-time feedback
+  function validateForm() {
+    const fullname = form.querySelector('input[name="fullname"]').value.trim();
+    const email = form.querySelector('input[name="email"]').value.trim();
+    const message = form.querySelector('textarea[name="message"]').value.trim();
+    
+    // Validation rules (matching backend)
+    const isFullnameValid = fullname.length >= 2 && fullname.length <= 100;
+    const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    const isMessageValid = message.length >= 10 && message.length <= 2000;
+    
+    // Update input styles and show feedback
+    updateInputValidation('fullname', isFullnameValid, fullname.length < 2 ? 'Name must be at least 2 characters' : '');
+    updateInputValidation('email', isEmailValid, !isEmailValid && email.length > 0 ? 'Please enter a valid email address' : '');
+    updateInputValidation('message', isMessageValid, 
+      message.length < 10 ? `Message must be at least 10 characters (${message.length}/10)` : 
+      message.length > 2000 ? `Message is too long (${message.length}/2000)` : '');
+    
+    // Enable/disable submit button
+    const isFormValid = isFullnameValid && isEmailValid && isMessageValid;
+    
+    if (isFormValid) {
+      formBtn.removeAttribute("disabled");
+      formBtn.style.opacity = '1';
+      formBtn.style.cursor = 'pointer';
+    } else {
+      formBtn.setAttribute("disabled", "");
+      formBtn.style.opacity = '0.6';
+      formBtn.style.cursor = 'not-allowed';
+    }
+    
+    return isFormValid;
+  }
+  
+  // Update input validation styling and feedback
+  function updateInputValidation(inputName, isValid, errorMessage) {
+    const input = form.querySelector(`[name="${inputName}"]`);
+    const existingError = input.parentNode.querySelector('.validation-error');
+    const existingCounter = input.parentNode.querySelector('.char-counter');
+    
+    // Remove existing error message and counter
+    if (existingError) {
+      existingError.remove();
+    }
+    if (existingCounter) {
+      existingCounter.remove();
+    }
+    
+    // Update input styling
+    if (input.value.trim().length > 0) {
+      if (isValid) {
+        input.style.borderColor = '#4CAF50';
+        input.style.boxShadow = '0 0 0 2px rgba(76, 175, 80, 0.2)';
       } else {
-        formBtn.setAttribute("disabled", "");
+        input.style.borderColor = '#f44336';
+        input.style.boxShadow = '0 0 0 2px rgba(244, 67, 54, 0.2)';
+        
+        // Add error message
+        if (errorMessage) {
+          const errorDiv = document.createElement('div');
+          errorDiv.className = 'validation-error';
+          errorDiv.style.cssText = `
+            color: #f44336;
+            font-size: 12px;
+            margin-top: 5px;
+            font-family: 'Poppins', sans-serif;
+          `;
+          errorDiv.textContent = errorMessage;
+          input.parentNode.appendChild(errorDiv);
+        }
       }
-    });
+    } else {
+      // Reset styling for empty inputs
+      input.style.borderColor = '';
+      input.style.boxShadow = '';
+    }
+    
+    // Add character counter for message field
+    if (inputName === 'message') {
+      const charCount = input.value.length;
+      const counterDiv = document.createElement('div');
+      counterDiv.className = 'char-counter';
+      counterDiv.style.cssText = `
+        color: ${charCount < 10 ? '#f44336' : charCount > 2000 ? '#f44336' : '#999'};
+        font-size: 11px;
+        text-align: right;
+        margin-top: 5px;
+        font-family: 'Poppins', sans-serif;
+      `;
+      counterDiv.textContent = `${charCount}/2000 characters ${charCount < 10 ? '(minimum 10)' : ''}`;
+      input.parentNode.appendChild(counterDiv);
+    }
+  }
+  
+  // Add real-time validation to all form inputs
+  formInputs.forEach(input => {
+    input.addEventListener("input", validateForm);
+    input.addEventListener("blur", validateForm);
   });
+  
+  // Initial validation check
+  validateForm();
 
   // Form submission
   if (form) {
@@ -553,12 +645,26 @@ document.addEventListener("DOMContentLoaded", function () {
             formBtn.style.background = '';
           }, 3000);
         } else {
-          // Error
-          throw new Error(result.error || 'Failed to send message');
+          // Handle validation errors from backend
+          if (response.status === 400) {
+            showCustomAlert('Validation Error', result.error || 'Please check your input and try again.', 'error');
+          } else {
+            showCustomAlert('Error', result.error || 'Failed to send message. Please try again.', 'error');
+          }
+          
+          // Reset button
+          formBtn.disabled = false;
+          formBtn.querySelector('span').textContent = originalText;
         }
       } catch (error) {
         console.error('Contact form error:', error);
-        showCustomAlert('Error', 'Sorry, there was an error sending your message. Please try again.', 'error');
+        
+        // Check if it's a network error or validation error
+        if (error.message.includes('Failed to fetch')) {
+          showCustomAlert('Network Error', 'Unable to connect to server. Please check your internet connection and try again.', 'error');
+        } else {
+          showCustomAlert('Error', 'Sorry, there was an error sending your message. Please try again.', 'error');
+        }
         
         // Reset button
         formBtn.disabled = false;

@@ -1327,6 +1327,40 @@ textarea.form-input::-webkit-resizer {
   border-color: var(--bittersweet-shimmer);
 }
 
+/* Enhanced form validation styles */
+.form-input.valid {
+  border-color: #4CAF50 !important;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2) !important;
+}
+
+.form-input.invalid {
+  border-color: #f44336 !important;
+  box-shadow: 0 0 0 2px rgba(244, 67, 54, 0.2) !important;
+}
+
+.validation-error {
+  color: #f44336;
+  font-size: 1.2rem;
+  margin-top: 5px;
+  font-family: var(--ff-poppins);
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.form-btn:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+}
+
+.form-btn:disabled:hover {
+  transform: none !important;
+}
+
 .form-btn {
   position: relative;
   width: 100%;
