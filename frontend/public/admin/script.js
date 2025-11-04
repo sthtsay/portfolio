@@ -561,7 +561,15 @@ async function saveContent() {
         platform: f[`social-platform-${i}`] ? f[`social-platform-${i}`].value : s.platform,
         url: f[`social-url-${i}`] ? f[`social-url-${i}`].value : s.url,
         icon: f[`social-icon-${i}`] ? f[`social-icon-${i}`].value : s.icon
-      })).filter(social => social.platform && social.url && social.icon);
+      })).filter(social => {
+        // Only include entries where all fields are non-empty strings
+        const isValid = social.platform && social.platform.trim() !== '' && 
+                       social.url && social.url.trim() !== '' && 
+                       social.icon && social.icon.trim() !== '';
+        console.log('Social media entry:', social, 'Valid:', isValid);
+        return isValid;
+      });
+      console.log('Filtered social media:', content.socialMedia);
     }
 
     // Send to backend
@@ -1966,9 +1974,9 @@ function renderSettings() {
   addSocial.onclick = (e) => { 
     e.preventDefault();
     e.stopPropagation();
-    (content.socialMedia = content.socialMedia||[]).unshift({platform:'',url:'',icon:''}); 
+    (content.socialMedia = content.socialMedia||[]).push({platform:'',url:'',icon:''}); 
     renderSettings(); 
-    showNotification('Success', 'New social media form added at top', 'success');
+    showNotification('Success', 'New social media form added', 'success');
   };
   
   socialHeader.appendChild(socialTitle);
@@ -1979,7 +1987,7 @@ function renderSettings() {
   socialList.className = 'list-section';
   
   (content.socialMedia||[]).forEach((social, i) => {
-    const isNew = i === 0 && isNewItem(social, ['platform', 'url']);
+    const isNew = i === (content.socialMedia.length - 1) && isNewItem(social, ['platform', 'url']);
     const item = createListItem(isNew);
     
     // Platform dropdown
