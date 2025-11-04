@@ -395,7 +395,7 @@ document.addEventListener("DOMContentLoaded", function () {
       ">${message}</p>
       <button style="
         background: linear-gradient(to bottom right, hsl(45, 100%, 71%) 0%, hsla(36, 100%, 69%, 0) 50%);
-        color: hsl(0, 0%, 7%);
+        color: hsl(0, 0%, 100%);
         border: none;
         padding: 12px 24px;
         border-radius: 12px;

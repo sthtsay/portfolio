@@ -508,13 +508,13 @@ textarea.form-input {
 .btn:hover,
 .btn:focus {
   background: var(--orange-yellow-crayola);
-  color: var(--smoky-black);
+  color: var(--white-1);
 }
 
 .btn-primary {
   background: var(--bg-gradient-yellow-1);
   background-size: 1000%;
-  color: var(--smoky-black);
+  color: var(--white-1);
   box-shadow: var(--shadow-3);
   border: none;
 }
@@ -528,7 +528,7 @@ textarea.form-input {
 .save-btn {
   background: var(--bg-gradient-yellow-1);
   background-size: 1000%;
-  color: var(--smoky-black);
+  color: var(--white-1);
   box-shadow: var(--shadow-3);
   border: none;
   font-size: var(--fs-6);
@@ -593,7 +593,7 @@ textarea.form-input {
 .file-input-label {
   background: var(--bg-gradient-yellow-1);
   background-size: 1000%;
-  color: var(--smoky-black);
+  color: var(--white-1);
   font-size: var(--fs-7);
   font-weight: var(--fw-500);
   padding: 8px 16px;
@@ -876,7 +876,7 @@ textarea.form-input {
 
 #token-submit-btn {
   background: var(--bg-gradient-yellow-1);
-  color: var(--smoky-black);
+  color: var(--white-1);
   border: none;
   padding: 12px 24px;
   border-radius: 14px;
@@ -1109,7 +1109,7 @@ tacts Management Styles */
 
 .unread-badge {
   background: var(--orange-yellow-crayola);
-  color: var(--eerie-black-2);
+  color: var(--white-1);
   padding: 4px 8px;
   border-radius: 12px;
   font-size: var(--fs-7);
@@ -1166,7 +1166,7 @@ tacts Management Styles */
 
 .mark-read-btn {
   background: var(--vegas-gold);
-  color: var(--eerie-black-2);
+  color: var(--white-1);
 }
 
 .mark-read-btn:hover {
@@ -1323,7 +1323,7 @@ tacts Management Styles */
 
 .action-btn:hover {
   background: var(--bg-gradient-yellow-2);
-  color: var(--smoky-black);
+  color: var(--white-1);
   border-color: var(--orange-yellow-crayola);
   transform: translateY(-2px);
 }
@@ -1572,7 +1572,7 @@ tacts Management Styles */
 
 .action-icon-btn:hover {
   background: var(--bg-gradient-yellow-2);
-  color: var(--smoky-black);
+  color: var(--white-1);
   border-color: var(--orange-yellow-crayola);
 }
 
@@ -1684,7 +1684,7 @@ tacts Management Styles */
 .alert-actions .btn-primary {
   background: var(--bg-gradient-yellow-1);
   background-size: 1000%;
-  color: var(--smoky-black);
+  color: var(--white-1);
   border: none;
 }
 
@@ -1743,7 +1743,7 @@ tacts Management Styles */
   top: -8px;
   right: -8px;
   background: var(--bg-gradient-yellow-1);
-  color: var(--smoky-black);
+  color: var(--white-1);
   font-size: var(--fs-8);
   font-weight: var(--fw-600);
   padding: 4px 8px;
@@ -1915,7 +1915,7 @@ tacts Management Styles */
   right: 0;
   top: -30px;
   background: var(--bg-gradient-yellow-1);
-  color: var(--smoky-black);
+  color: var(--white-1);
   padding: 4px 8px;
   border-radius: 6px;
   font-size: var(--fs-7);
@@ -1981,7 +1981,7 @@ tacts Management Styles */
 .auth-btn {
   background: var(--bg-gradient-yellow-1);
   background-size: 1000%;
-  color: var(--smoky-black);
+  color: var(--white-1);
   border: none;
   padding: 15px 30px;
   border-radius: 12px;
