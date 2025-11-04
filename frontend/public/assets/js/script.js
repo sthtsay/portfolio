@@ -138,6 +138,74 @@ document.addEventListener("DOMContentLoaded", function () {
           `).join('');
         }
 
+        // UPDATE SITE METADATA
+        if (content.siteSettings) {
+          document.title = content.siteSettings.title || document.title;
+          
+          // Update meta tags
+          const metaDescription = document.querySelector('meta[name="description"]');
+          if (metaDescription && content.siteSettings.description) {
+            metaDescription.content = content.siteSettings.description;
+          }
+          
+          const metaKeywords = document.querySelector('meta[name="keywords"]');
+          if (metaKeywords && content.siteSettings.keywords) {
+            metaKeywords.content = content.siteSettings.keywords;
+          }
+          
+          // Update avatar images
+          if (content.siteSettings.avatar) {
+            const avatarImages = document.querySelectorAll('.avatar-box img, .modal-avatar-box img');
+            avatarImages.forEach(img => {
+              if (img.src.includes('my-avatar.png')) {
+                img.src = getImageUrl(content.siteSettings.avatar);
+              }
+            });
+          }
+          
+          // Update favicon
+          if (content.siteSettings.favicon) {
+            const favicon = document.querySelector('link[rel="shortcut icon"]');
+            if (favicon) {
+              favicon.href = getImageUrl(content.siteSettings.favicon);
+            }
+          }
+        }
+
+        // UPDATE CONTACT INFORMATION
+        if (content.contactInfo) {
+          const emailLink = document.querySelector('a[href^="mailto:"]');
+          if (emailLink && content.contactInfo.email) {
+            emailLink.href = `mailto:${content.contactInfo.email}`;
+            emailLink.textContent = content.contactInfo.email;
+          }
+          
+          const phoneLink = document.querySelector('a[href^="tel:"]');
+          if (phoneLink && content.contactInfo.phone) {
+            phoneLink.href = `tel:${content.contactInfo.phone.replace(/\s/g, '')}`;
+            phoneLink.textContent = content.contactInfo.phone;
+          }
+          
+          const locationElement = document.querySelector('.contacts-list address');
+          if (locationElement && content.contactInfo.location) {
+            locationElement.textContent = content.contactInfo.location;
+          }
+        }
+
+        // UPDATE SOCIAL MEDIA LINKS
+        if (content.socialMedia && content.socialMedia.length > 0) {
+          const socialList = document.querySelector('.social-list');
+          if (socialList) {
+            socialList.innerHTML = content.socialMedia.map(social => `
+              <li class="social-item">
+                <a href="${social.url}" class="social-link" target="_blank" rel="noopener">
+                  <ion-icon name="${social.icon}"></ion-icon>
+                </a>
+              </li>
+            `).join('');
+          }
+        }
+
         // PROJECTS
         const projectTypes = [
           { type: 'python projects', id: 'python-projects-list' },

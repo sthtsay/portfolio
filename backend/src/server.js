@@ -154,6 +154,30 @@ const contentSchema = Joi.object({
       name: Joi.string().required(),
       value: Joi.number().min(0).max(100).required()
     })
+  ).default([]),
+
+  siteSettings: Joi.object({
+    title: Joi.string().required(),
+    description: Joi.string().required(),
+    keywords: Joi.string().allow(''),
+    author: Joi.string().required(),
+    siteUrl: Joi.string().uri().allow(''),
+    avatar: Joi.string().allow(''),
+    favicon: Joi.string().allow('')
+  }).default({}),
+
+  contactInfo: Joi.object({
+    email: Joi.string().email().required(),
+    phone: Joi.string().allow(''),
+    location: Joi.string().allow('')
+  }).default({}),
+
+  socialMedia: Joi.array().items(
+    Joi.object({
+      platform: Joi.string().required(),
+      url: Joi.string().uri().required(),
+      icon: Joi.string().required()
+    })
   ).default([])
 });
 

@@ -148,5 +148,46 @@
       "image": "uploads/todolist-project.png",
       "alt": "To-Do List Project Image"
     }
+  ],
+  "siteSettings": {
+    "title": "Yohannes Mesfin | Quality Assurance Engineer Portfolio",
+    "description": "Professional portfolio of Yohannes Mesfin, a Quality Assurance Engineer specializing in IT solutions, system optimization, and Python development based in Addis Ababa, Ethiopia.",
+    "keywords": "Quality Assurance Engineer, IT Professional, System Optimization, Python Development, Addis Ababa, Ethiopia",
+    "author": "Yohannes Mesfin",
+    "siteUrl": "https://sthtsay.github.io/portfolio/",
+    "avatar": "assets/images/my-avatar.png",
+    "favicon": "assets/images/my-avatar.png"
+  },
+  "contactInfo": {
+    "email": "mesfiny711@gmail.com",
+    "phone": "+(251) 954 906 800",
+    "location": "Addis Ababa, Ethiopia"
+  },
+  "socialMedia": [
+    {
+      "platform": "Facebook",
+      "url": "https://facebook.com/profile.php?id=100072558426746",
+      "icon": "logo-facebook"
+    },
+    {
+      "platform": "WhatsApp",
+      "url": "https://api.whatsapp.com/send?phone=251934415039",
+      "icon": "logo-whatsapp"
+    },
+    {
+      "platform": "Instagram",
+      "url": "https://www.instagram.com/yohannes.mesfn/",
+      "icon": "logo-instagram"
+    },
+    {
+      "platform": "LinkedIn",
+      "url": "https://www.linkedin.com/in/yohannesmesfin",
+      "icon": "logo-linkedin"
+    },
+    {
+      "platform": "Telegram",
+      "url": "https://t.me/Yohannes_Mesfin",
+      "icon": "paper-plane-outline"
+    }
   ]
 }

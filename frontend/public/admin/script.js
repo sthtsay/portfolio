@@ -340,6 +340,7 @@ function renderAll() {
   renderExperience();
   renderSkills();
   renderContacts();
+  renderSettings();
 }
 
 // DASHBOARD
@@ -530,6 +531,35 @@ async function saveContent() {
     if (content.skills) content.skills = content.skills.map((s,i) => ({
       name: f[`skill-name-${i}`] ? f[`skill-name-${i}`].value : s.name,
       value: f[`skill-value-${i}`] ? Number(f[`skill-value-${i}`].value) : s.value
+    }));
+    
+    // Site Settings
+    if (f['site-title'] || f['site-description'] || f['site-author']) {
+      content.siteSettings = {
+        title: f['site-title'] ? f['site-title'].value : (content.siteSettings?.title || ''),
+        description: f['site-description'] ? f['site-description'].value : (content.siteSettings?.description || ''),
+        keywords: f['site-keywords'] ? f['site-keywords'].value : (content.siteSettings?.keywords || ''),
+        author: f['site-author'] ? f['site-author'].value : (content.siteSettings?.author || ''),
+        siteUrl: f['site-url'] ? f['site-url'].value : (content.siteSettings?.siteUrl || ''),
+        avatar: f['site-avatar'] ? f['site-avatar'].value : (content.siteSettings?.avatar || ''),
+        favicon: f['site-avatar'] ? f['site-avatar'].value : (content.siteSettings?.favicon || '')
+      };
+    }
+    
+    // Contact Info
+    if (f['contact-email'] || f['contact-phone'] || f['contact-location']) {
+      content.contactInfo = {
+        email: f['contact-email'] ? f['contact-email'].value : (content.contactInfo?.email || ''),
+        phone: f['contact-phone'] ? f['contact-phone'].value : (content.contactInfo?.phone || ''),
+        location: f['contact-location'] ? f['contact-location'].value : (content.contactInfo?.location || '')
+      };
+    }
+    
+    // Social Media
+    if (content.socialMedia) content.socialMedia = content.socialMedia.map((s,i) => ({
+      platform: f[`social-platform-${i}`] ? f[`social-platform-${i}`].value : s.platform,
+      url: f[`social-url-${i}`] ? f[`social-url-${i}`].value : s.url,
+      icon: f[`social-icon-${i}`] ? f[`social-icon-${i}`].value : s.icon
     }));
 
     // Send to backend
@@ -1868,4 +1898,158 @@ function renderContentChart() {
       }
     }
   };
+}//
+ SETTINGS
+function renderSettings() {
+  const tab = document.getElementById('tab-settings');
+  tab.innerHTML = '';
+  
+  // Site Settings Section
+  const siteSettingsSection = document.createElement('div');
+  siteSettingsSection.className = 'settings-section';
+  
+  const siteHeader = document.createElement('div');
+  siteHeader.className = 'section-header';
+  const siteTitle = document.createElement('h3');
+  siteTitle.className = 'section-title';
+  siteTitle.textContent = 'Site Information';
+  siteHeader.appendChild(siteTitle);
+  siteSettingsSection.appendChild(siteHeader);
+  
+  const siteSettings = content.siteSettings || {};
+  
+  siteSettingsSection.appendChild(labeledInput('Site Title', createInput('text', siteSettings.title, 'Your Name | Your Title', 'site-title')));
+  siteSettingsSection.appendChild(labeledInput('Meta Description', createInput('textarea', siteSettings.description, 'Professional portfolio description...', 'site-description')));
+  siteSettingsSection.appendChild(labeledInput('Keywords', createInput('text', siteSettings.keywords, 'keyword1, keyword2, keyword3', 'site-keywords')));
+  siteSettingsSection.appendChild(labeledInput('Author Name', createInput('text', siteSettings.author, 'Your Full Name', 'site-author')));
+  siteSettingsSection.appendChild(labeledInput('Site URL', createInput('url', siteSettings.siteUrl, 'https://yoursite.com', 'site-url')));
+  siteSettingsSection.appendChild(createImageUploadInput('site-avatar', siteSettings.avatar || 'assets/images/my-avatar.png'));
+  
+  tab.appendChild(siteSettingsSection);
+  
+  // Contact Information Section
+  const contactSection = document.createElement('div');
+  contactSection.className = 'settings-section';
+  
+  const contactHeader = document.createElement('div');
+  contactHeader.className = 'section-header';
+  const contactTitle = document.createElement('h3');
+  contactTitle.className = 'section-title';
+  contactTitle.textContent = 'Contact Information';
+  contactHeader.appendChild(contactTitle);
+  contactSection.appendChild(contactHeader);
+  
+  const contactInfo = content.contactInfo || {};
+  
+  contactSection.appendChild(labeledInput('Email Address', createInput('email', contactInfo.email, 'your@email.com', 'contact-email')));
+  contactSection.appendChild(labeledInput('Phone Number', createInput('tel', contactInfo.phone, '+1 (555) 123-4567', 'contact-phone')));
+  contactSection.appendChild(labeledInput('Location', createInput('text', contactInfo.location, 'City, Country', 'contact-location')));
+  
+  tab.appendChild(contactSection);
+  
+  // Social Media Section
+  const socialSection = document.createElement('div');
+  socialSection.className = 'settings-section';
+  
+  const socialHeader = document.createElement('div');
+  socialHeader.className = 'section-header';
+  const socialTitle = document.createElement('h3');
+  socialTitle.className = 'section-title';
+  socialTitle.textContent = 'Social Media Links';
+  
+  const addSocial = document.createElement('button');
+  addSocial.type = 'button';
+  addSocial.className = 'add-btn';
+  addSocial.innerHTML = '<ion-icon name="add-outline"></ion-icon> Add Social Link';
+  addSocial.onclick = (e) => { 
+    e.preventDefault();
+    e.stopPropagation();
+    (content.socialMedia = content.socialMedia||[]).unshift({platform:'',url:'',icon:''}); 
+    renderSettings(); 
+    showNotification('Success', 'New social media form added at top', 'success');
+  };
+  
+  socialHeader.appendChild(socialTitle);
+  socialHeader.appendChild(addSocial);
+  socialSection.appendChild(socialHeader);
+  
+  const socialList = document.createElement('div');
+  socialList.className = 'list-section';
+  
+  (content.socialMedia||[]).forEach((social, i) => {
+    const isNew = i === 0 && isNewItem(social, ['platform', 'url']);
+    const item = createListItem(isNew);
+    
+    // Platform dropdown
+    const platformGroup = document.createElement('div');
+    platformGroup.className = 'form-group';
+    const platformLabel = document.createElement('label');
+    platformLabel.textContent = 'Platform';
+    const platformSelect = document.createElement('select');
+    platformSelect.className = 'form-input';
+    platformSelect.name = `social-platform-${i}`;
+    
+    const platforms = [
+      {name: 'Facebook', icon: 'logo-facebook'},
+      {name: 'Instagram', icon: 'logo-instagram'},
+      {name: 'Twitter', icon: 'logo-twitter'},
+      {name: 'LinkedIn', icon: 'logo-linkedin'},
+      {name: 'GitHub', icon: 'logo-github'},
+      {name: 'YouTube', icon: 'logo-youtube'},
+      {name: 'TikTok', icon: 'logo-tiktok'},
+      {name: 'WhatsApp', icon: 'logo-whatsapp'},
+      {name: 'Telegram', icon: 'paper-plane-outline'},
+      {name: 'Discord', icon: 'logo-discord'},
+      {name: 'Behance', icon: 'logo-behance'},
+      {name: 'Dribbble', icon: 'logo-dribbble'}
+    ];
+    
+    platformSelect.innerHTML = '<option value="">Select Platform</option>' + 
+      platforms.map(p => `<option value="${p.name}" data-icon="${p.icon}" ${social.platform === p.name ? 'selected' : ''}>${p.name}</option>`).join('');
+    
+    platformSelect.onchange = function() {
+      const selectedOption = this.options[this.selectedIndex];
+      const iconInput = item.querySelector(`[name="social-icon-${i}"]`);
+      if (iconInput && selectedOption.dataset.icon) {
+        iconInput.value = selectedOption.dataset.icon;
+      }
+    };
+    
+    platformGroup.appendChild(platformLabel);
+    platformGroup.appendChild(platformSelect);
+    item.appendChild(platformGroup);
+    
+    item.appendChild(labeledInput('URL', createInput('url', social.url, 'https://platform.com/username', `social-url-${i}`)));
+    
+    // Hidden icon input (auto-filled by platform selection)
+    const iconInput = createInput('hidden', social.icon, '', `social-icon-${i}`);
+    item.appendChild(iconInput);
+    
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'remove-btn';
+    remove.textContent = 'Remove';
+    remove.onclick = async (e) => { 
+      e.preventDefault();
+      e.stopPropagation();
+      const confirmed = await customConfirm(
+        'Remove Social Link', 
+        'Are you sure you want to remove this social media link?',
+        'Remove',
+        'Cancel'
+      );
+      if (confirmed) {
+        content.socialMedia.splice(i,1); 
+        renderSettings();
+        await saveContent();
+        showNotification('Success', 'Social media link removed successfully', 'success');
+      }
+    };
+    item.appendChild(remove);
+    
+    socialList.appendChild(item);
+  });
+  
+  socialSection.appendChild(socialList);
+  tab.appendChild(socialSection);
 }
