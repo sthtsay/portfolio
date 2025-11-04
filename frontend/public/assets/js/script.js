@@ -1,5 +1,5 @@
 // Backend URL for API and socket.io
-const BACKEND_URL = 'https://portfolio-505u.onrender.com';
+const BACKEND_URL = 'http://localhost:3000';
 
 'use strict';
 
@@ -140,65 +140,123 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // UPDATE SITE METADATA
         if (content.siteSettings) {
+          // Update page title
           document.title = content.siteSettings.title || document.title;
+          document.getElementById('page-title').textContent = content.siteSettings.title || document.title;
           
           // Update meta tags
-          const metaDescription = document.querySelector('meta[name="description"]');
-          if (metaDescription && content.siteSettings.description) {
-            metaDescription.content = content.siteSettings.description;
-          }
+          const metaTitle = document.getElementById('meta-title');
+          if (metaTitle) metaTitle.content = content.siteSettings.title || '';
           
-          const metaKeywords = document.querySelector('meta[name="keywords"]');
-          if (metaKeywords && content.siteSettings.keywords) {
-            metaKeywords.content = content.siteSettings.keywords;
-          }
+          const metaDescription = document.getElementById('meta-description');
+          if (metaDescription) metaDescription.content = content.siteSettings.description || '';
+          
+          const metaKeywords = document.getElementById('meta-keywords');
+          if (metaKeywords) metaKeywords.content = content.siteSettings.keywords || '';
+          
+          const metaAuthor = document.getElementById('meta-author');
+          if (metaAuthor) metaAuthor.content = content.siteSettings.author || '';
+          
+          // Update Open Graph tags
+          const ogUrl = document.getElementById('og-url');
+          if (ogUrl) ogUrl.content = content.siteSettings.siteUrl || '';
+          
+          const ogTitle = document.getElementById('og-title');
+          if (ogTitle) ogTitle.content = content.siteSettings.title || '';
+          
+          const ogDescription = document.getElementById('og-description');
+          if (ogDescription) ogDescription.content = content.siteSettings.description || '';
+          
+          const ogImage = document.getElementById('og-image');
+          if (ogImage) ogImage.content = getImageUrl(content.siteSettings.avatar) || '';
+          
+          // Update Twitter tags
+          const twitterUrl = document.getElementById('twitter-url');
+          if (twitterUrl) twitterUrl.content = content.siteSettings.siteUrl || '';
+          
+          const twitterTitle = document.getElementById('twitter-title');
+          if (twitterTitle) twitterTitle.content = content.siteSettings.title || '';
+          
+          const twitterDescription = document.getElementById('twitter-description');
+          if (twitterDescription) twitterDescription.content = content.siteSettings.description || '';
+          
+          const twitterImage = document.getElementById('twitter-image');
+          if (twitterImage) twitterImage.content = getImageUrl(content.siteSettings.avatar) || '';
           
           // Update avatar images
           if (content.siteSettings.avatar) {
-            const avatarImages = document.querySelectorAll('.avatar-box img, .modal-avatar-box img');
-            avatarImages.forEach(img => {
-              if (img.src.includes('my-avatar.png')) {
-                img.src = getImageUrl(content.siteSettings.avatar);
-              }
-            });
+            const mainAvatar = document.getElementById('main-avatar');
+            if (mainAvatar) {
+              mainAvatar.src = getImageUrl(content.siteSettings.avatar);
+              mainAvatar.alt = content.siteSettings.author || 'Profile Picture';
+            }
+            
+            // Update about name title attribute
+            const aboutName = document.getElementById('about-name');
+            if (aboutName && content.siteSettings.author) {
+              aboutName.title = content.siteSettings.author;
+            }
           }
           
-          // Update favicon
+          // Update favicon and icons
           if (content.siteSettings.favicon) {
-            const favicon = document.querySelector('link[rel="shortcut icon"]');
-            if (favicon) {
-              favicon.href = getImageUrl(content.siteSettings.favicon);
-            }
+            const favicon = document.getElementById('favicon');
+            if (favicon) favicon.href = getImageUrl(content.siteSettings.favicon);
+            
+            const shortcutIcon = document.getElementById('shortcut-icon');
+            if (shortcutIcon) shortcutIcon.href = getImageUrl(content.siteSettings.favicon);
+            
+            const appleTouchIcon = document.getElementById('apple-touch-icon');
+            if (appleTouchIcon) appleTouchIcon.href = getImageUrl(content.siteSettings.favicon);
+            
+            const preloadAvatar = document.getElementById('preload-avatar');
+            if (preloadAvatar) preloadAvatar.href = getImageUrl(content.siteSettings.avatar);
           }
         }
 
         // UPDATE CONTACT INFORMATION
         if (content.contactInfo) {
-          const emailLink = document.querySelector('a[href^="mailto:"]');
-          if (emailLink && content.contactInfo.email) {
-            emailLink.href = `mailto:${content.contactInfo.email}`;
-            emailLink.textContent = content.contactInfo.email;
-          }
-          
-          const phoneLink = document.querySelector('a[href^="tel:"]');
-          if (phoneLink && content.contactInfo.phone) {
-            phoneLink.href = `tel:${content.contactInfo.phone.replace(/\s/g, '')}`;
-            phoneLink.textContent = content.contactInfo.phone;
-          }
-          
-          const locationElement = document.querySelector('.contacts-list address');
-          if (locationElement && content.contactInfo.location) {
-            locationElement.textContent = content.contactInfo.location;
+          const contactsList = document.getElementById('contacts-list');
+          if (contactsList) {
+            contactsList.innerHTML = `
+              <li class="contact-item">
+                <div class="icon-box">
+                  <ion-icon name="mail-outline"></ion-icon>
+                </div>
+                <div class="contact-info">
+                  <p class="contact-title">Email</p>
+                  <a href="mailto:${content.contactInfo.email}" class="contact-link">${content.contactInfo.email}</a>
+                </div>
+              </li>
+              <li class="contact-item">
+                <div class="icon-box">
+                  <ion-icon name="phone-portrait-outline"></ion-icon>
+                </div>
+                <div class="contact-info">
+                  <p class="contact-title">Phone</p>
+                  <a href="tel:${content.contactInfo.phone.replace(/\s/g, '')}" class="contact-link">${content.contactInfo.phone}</a>
+                </div>
+              </li>
+              <li class="contact-item">
+                <div class="icon-box">
+                  <ion-icon name="location-outline"></ion-icon>
+                </div>
+                <div class="contact-info">
+                  <p class="contact-title">Location</p>
+                  <address>${content.contactInfo.location}</address>
+                </div>
+              </li>
+            `;
           }
         }
 
         // UPDATE SOCIAL MEDIA LINKS
         if (content.socialMedia && content.socialMedia.length > 0) {
-          const socialList = document.querySelector('.social-list');
+          const socialList = document.getElementById('social-list');
           if (socialList) {
             socialList.innerHTML = content.socialMedia.map(social => `
               <li class="social-item">
-                <a href="${social.url}" class="social-link" target="_blank" rel="noopener">
+                <a href="${social.url}" class="social-link" target="_blank" rel="noopener" title="${social.platform}">
                   <ion-icon name="${social.icon}"></ion-icon>
                 </a>
               </li>
@@ -512,54 +570,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // Make function globally available
   window.showCustomAlert = showCustomAlert;
 
-  // Custom select functionality
-  const select = document.querySelector("[data-select]");
-  const selectItems = document.querySelectorAll("[data-select-item]");
-  const selectValue = document.querySelector("[data-select-value]");
-  const filterBtn = document.querySelectorAll("[data-filter-btn]");
-
-  if (select) {
-    select.addEventListener("click", function () {
-      elementToggleFunc(this);
-    });
-  }
-
-  const filterItems = document.querySelectorAll("[data-filter-item]");
-  const filterFunc = function (selectedValue) {
-    const normalizedValue = selectedValue.trim().toLowerCase();
-    filterItems.forEach(item => {
-      const itemCategory = (item.dataset.category || '').trim().toLowerCase();
-      if (normalizedValue === "all") {
-        item.classList.add("active");
-      } else if (normalizedValue === itemCategory) {
-        item.classList.add("active");
-      } else {
-        item.classList.remove("active");
-      }
-    });
-  };
-
-  selectItems.forEach(item => {
-    item.addEventListener("click", function () {
-      const selectedValue = this.innerText.toLowerCase();
-      selectValue.innerText = this.innerText;
-      elementToggleFunc(select);
-      filterFunc(selectedValue);
-    });
-  });
-
-  let lastClickedBtn = filterBtn[0];
-  filterBtn.forEach(btn => {
-    btn.addEventListener("click", function () {
-      const selectedValue = this.innerText.toLowerCase();
-      selectValue.innerText = this.innerText;
-      filterFunc(selectedValue);
-
-      if (lastClickedBtn) lastClickedBtn.classList.remove("active");
-      this.classList.add("active");
-      lastClickedBtn = this;
-    });
-  });
+  // Custom select functionality (moved to after content loading to avoid conflicts)
 
   // Contact form functionality
   const form = document.querySelector("[data-form]");
