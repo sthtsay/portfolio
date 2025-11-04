@@ -235,6 +235,14 @@ app.post('/api/contact', async (req, res) => {
     // Send email notification (optional)
     const emailSent = await sendEmailNotification(contactData);
 
+    // Emit socket event for real-time updates
+    io.emit('new-contact', {
+      id: contactData.id,
+      name: contactData.fullname,
+      email: contactData.email,
+      timestamp: contactData.timestamp
+    });
+
     res.json({ 
       success: true, 
       message: 'Thank you for your message! I\'ll get back to you soon.',

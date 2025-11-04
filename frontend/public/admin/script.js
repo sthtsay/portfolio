@@ -274,11 +274,60 @@ fetch(`${API_URL}/content.json`)
   .then(data => {
     content = data;
     renderAll();
+    setupRealTimeUpdates();
   })
   .catch(() => {
     content = {};
     renderAll();
+    setupRealTimeUpdates();
   });
+
+// Setup real-time updates with Socket.io
+function setupRealTimeUpdates() {
+  // Load Socket.io script dynamically
+  const script = document.createElement('script');
+  script.src = API_URL + '/socket.io/socket.io.js';
+  script.onload = function() {
+    const socket = io(API_URL);
+    
+    // Listen for content updates
+    socket.on('content-updated', (data) => {
+      console.log('Content updated, refreshing...');
+      // Refresh content
+      fetch(`${API_URL}/content.json`)
+        .then(r => r.json())
+        .then(newData => {
+          content = newData;
+          renderAll();
+          showNotification('Info', 'Content updated from another session', 'info');
+        });
+    });
+    
+    // Listen for new contact messages
+    socket.on('new-contact', (data) => {
+      console.log('New contact message received');
+      // If we're on the contacts tab, refresh it
+      const activeTab = document.querySelector('.navbar-link.active');
+      if (activeTab && activeTab.dataset.tab === 'contacts') {
+        renderContacts();
+      }
+      
+      // Update dashboard stats
+      if (activeTab && activeTab.dataset.tab === 'dashboard') {
+        renderDashboard();
+      }
+      
+      // Show notification
+      showNotification('New Message!', `New contact message from ${data.name || 'visitor'}`, 'info');
+    });
+    
+    console.log('Real-time updates connected');
+  };
+  script.onerror = function() {
+    console.log('Socket.io not available, real-time updates disabled');
+  };
+  document.head.appendChild(script);
+}
 
 function renderAll() {
   renderDashboard();
@@ -1285,8 +1334,8 @@ async function renderContacts() {
           <p>${contact.message}</p>
         </div>
         <div class="contact-actions">
-          ${!contact.read ? `<button class="mark-read-btn" onclick="markContactRead('${contact.id}')">Mark as Read</button>` : ''}
-          <button class="delete-contact-btn" onclick="deleteContact('${contact.id}')">Delete</button>
+          ${!contact.read ? `<button type="button" class="mark-read-btn" data-contact-id="${contact.id}" data-action="mark-read">Mark as Read</button>` : ''}
+          <button type="button" class="delete-contact-btn" data-contact-id="${contact.id}" data-action="delete">Delete</button>
         </div>
       `;
       
@@ -1294,10 +1343,36 @@ async function renderContacts() {
     });
     
     tab.appendChild(contactsList);
+    
+    // Add event listeners to contact action buttons
+    setupContactEventListeners();
   })
   .catch(err => {
     tab.innerHTML = '<p class="error">Failed to load contacts. Please try again.</p>';
     console.error('Failed to load contacts:', err);
+  });
+}
+
+// Setup event listeners for contact buttons
+function setupContactEventListeners() {
+  // Mark as read buttons
+  document.querySelectorAll('.mark-read-btn[data-action="mark-read"]').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const contactId = btn.dataset.contactId;
+      await markContactRead(contactId);
+    });
+  });
+  
+  // Delete buttons
+  document.querySelectorAll('.delete-contact-btn[data-action="delete"]').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const contactId = btn.dataset.contactId;
+      await deleteContact(contactId);
+    });
   });
 }
 
@@ -1308,22 +1383,24 @@ async function markContactRead(contactId) {
     if (!token) return;
   }
   
-  fetch(`${API_URL}/api/contacts/${contactId}/read`, {
-    method: 'PATCH',
-    headers: { 'Authorization': `Bearer ${adminToken}` }
-  })
-  .then(r => r.json())
-  .then(result => {
+  try {
+    const response = await fetch(`${API_URL}/api/contacts/${contactId}/read`, {
+      method: 'PATCH',
+      headers: { 'Authorization': `Bearer ${adminToken}` }
+    });
+    
+    const result = await response.json();
+    
     if (result.success) {
       renderContacts(); // Refresh the contacts list
+      showNotification('Success', 'Contact marked as read', 'success');
     } else {
       customAlert('Operation Failed', 'Failed to mark contact as read. Please try again.', 'error');
     }
-  })
-  .catch(err => {
+  } catch (err) {
     customAlert('Network Error', 'Error marking contact as read. Please check your connection.', 'error');
     console.error(err);
-  });
+  }
 }
 
 // Request token for contacts
@@ -1351,22 +1428,24 @@ async function deleteContact(contactId) {
     if (!token) return;
   }
   
-  fetch(`${API_URL}/api/contacts/${contactId}`, {
-    method: 'DELETE',
-    headers: { 'Authorization': `Bearer ${adminToken}` }
-  })
-  .then(r => r.json())
-  .then(result => {
+  try {
+    const response = await fetch(`${API_URL}/api/contacts/${contactId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${adminToken}` }
+    });
+    
+    const result = await response.json();
+    
     if (result.success) {
       renderContacts(); // Refresh the contacts list
+      showNotification('Success', 'Contact deleted successfully', 'success');
     } else {
       customAlert('Delete Failed', 'Failed to delete contact. Please try again.', 'error');
     }
-  })
-  .catch(err => {
+  } catch (err) {
     customAlert('Network Error', 'Error deleting contact. Please check your connection.', 'error');
     console.error(err);
-  });
+  }
 }
 
 // Save to backend
