@@ -1,5 +1,5 @@
 // Backend URL for API and socket.io
-const BACKEND_URL = 'http://localhost:3000';
+const BACKEND_URL = 'https://portfolio-505u.onrender.com';
 
 'use strict';
 
@@ -210,7 +210,9 @@ document.addEventListener("DOMContentLoaded", function () {
             if (appleTouchIcon) appleTouchIcon.href = getImageUrl(content.siteSettings.favicon);
             
             const preloadAvatar = document.getElementById('preload-avatar');
-            if (preloadAvatar) preloadAvatar.href = getImageUrl(content.siteSettings.avatar);
+            if (preloadAvatar && content.siteSettings.avatar) {
+              preloadAvatar.href = getImageUrl(content.siteSettings.avatar);
+            }
           }
         }
 
