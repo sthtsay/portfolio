@@ -1230,12 +1230,24 @@ function renderSkills() {
 }
 
 // CONTACTS
-function renderContacts() {
+async function renderContacts() {
   const tab = document.getElementById('tab-contacts');
   tab.innerHTML = '<div class="loading">Loading contacts...</div>';
   
   if (!adminToken) {
-    tab.innerHTML = '<p>Please authenticate to view contacts.</p>';
+    tab.innerHTML = `
+      <div class="auth-required">
+        <div class="auth-icon">
+          <ion-icon name="lock-closed-outline"></ion-icon>
+        </div>
+        <h3>Authentication Required</h3>
+        <p>Please enter your admin token to view contact messages.</p>
+        <button class="btn-primary auth-btn" onclick="requestTokenForContacts()">
+          <ion-icon name="key-outline"></ion-icon>
+          Enter Admin Token
+        </button>
+      </div>
+    `;
     return;
   }
   
@@ -1312,6 +1324,16 @@ async function markContactRead(contactId) {
     customAlert('Network Error', 'Error marking contact as read. Please check your connection.', 'error');
     console.error(err);
   });
+}
+
+// Request token for contacts
+async function requestTokenForContacts() {
+  const token = await requestAdminToken();
+  if (token) {
+    adminToken = token;
+    renderContacts(); // Re-render contacts with token
+    showNotification('Success', 'Authentication successful! Loading contacts...', 'success');
+  }
 }
 
 // Delete contact
