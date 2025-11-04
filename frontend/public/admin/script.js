@@ -555,12 +555,14 @@ async function saveContent() {
       };
     }
     
-    // Social Media
-    if (content.socialMedia) content.socialMedia = content.socialMedia.map((s,i) => ({
-      platform: f[`social-platform-${i}`] ? f[`social-platform-${i}`].value : s.platform,
-      url: f[`social-url-${i}`] ? f[`social-url-${i}`].value : s.url,
-      icon: f[`social-icon-${i}`] ? f[`social-icon-${i}`].value : s.icon
-    }));
+    // Social Media - filter out empty entries
+    if (content.socialMedia) {
+      content.socialMedia = content.socialMedia.map((s,i) => ({
+        platform: f[`social-platform-${i}`] ? f[`social-platform-${i}`].value : s.platform,
+        url: f[`social-url-${i}`] ? f[`social-url-${i}`].value : s.url,
+        icon: f[`social-icon-${i}`] ? f[`social-icon-${i}`].value : s.icon
+      })).filter(social => social.platform && social.url && social.icon);
+    }
 
     // Send to backend
     const response = await fetch(`${API_URL}/api/update-content`, {
