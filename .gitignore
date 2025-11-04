@@ -14,3 +14,7 @@ yarn-error.log*
 # VSCode
 .vscode/
 .DS_Store
+
+# data
+/backend/content.json
+/backend/contacts.json

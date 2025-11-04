@@ -410,6 +410,104 @@ function isNewItem(item, requiredFields) {
   return requiredFields.some(field => !item[field] || item[field].trim() === '');
 }
 
+// Auto-save content function
+async function saveContent() {
+  if (!adminToken) {
+    const token = await requestAdminToken();
+    if (!token) {
+      customAlert('Authentication Required', 'Admin token is required to save changes.', 'warning');
+      return false;
+    }
+  }
+
+  try {
+    // Gather all form data (same as the main save function)
+    const f = document.getElementById('admin-form');
+    
+    // About
+    if (f['about-name'] && f['about-title'] && f['about-description']) {
+      content.about = {
+        name: f['about-name'].value,
+        title: f['about-title'].value,
+        description: f['about-description'].value.split(/\n\n+/).map(s=>s.trim()).filter(Boolean)
+      };
+    }
+    
+    // Services
+    if (content.services) content.services = content.services.map((s,i) => ({
+      icon: f[`service-icon-${i}`] ? f[`service-icon-${i}`].value : s.icon,
+      title: f[`service-title-${i}`] ? f[`service-title-${i}`].value : s.title,
+      text: f[`service-text-${i}`] ? f[`service-text-${i}`].value : s.text
+    }));
+    
+    // Projects
+    if (content.projects) content.projects = content.projects.map((p,i) => ({
+      title: f[`project-title-${i}`] ? f[`project-title-${i}`].value : p.title,
+      category: f[`project-category-${i}`] ? f[`project-category-${i}`].value : p.category,
+      type: f[`project-type-${i}`] ? f[`project-type-${i}`].value : p.type,
+      image: f[`project-image-${i}`] ? f[`project-image-${i}`].value : p.image,
+      alt: f[`project-alt-${i}`] ? f[`project-alt-${i}`].value : p.alt
+    }));
+    
+    // Testimonials
+    if (content.testimonials) content.testimonials = content.testimonials.map((t,i) => ({
+      avatar: f[`testimonial-avatar-${i}`] ? f[`testimonial-avatar-${i}`].value : t.avatar,
+      name: f[`testimonial-name-${i}`] ? f[`testimonial-name-${i}`].value : t.name,
+      text: f[`testimonial-text-${i}`] ? f[`testimonial-text-${i}`].value : t.text
+    }));
+    
+    // Certificates
+    if (content.certificates) content.certificates = content.certificates.map((c,i) => ({
+      logo: f[`certificate-logo-${i}`] ? f[`certificate-logo-${i}`].value : c.logo,
+      alt: f[`certificate-alt-${i}`] ? f[`certificate-alt-${i}`].value : c.alt
+    }));
+    
+    // Education
+    if (content.education) content.education = content.education.map((e,i) => ({
+      school: f[`education-school-${i}`] ? f[`education-school-${i}`].value : e.school,
+      years: f[`education-years-${i}`] ? f[`education-years-${i}`].value : e.years,
+      text: f[`education-text-${i}`] ? f[`education-text-${i}`].value : e.text
+    }));
+    
+    // Experience
+    if (content.experience) content.experience = content.experience.map((e,i) => ({
+      title: f[`experience-title-${i}`] ? f[`experience-title-${i}`].value : e.title,
+      company: f[`experience-company-${i}`] ? f[`experience-company-${i}`].value : e.company,
+      years: f[`experience-years-${i}`] ? f[`experience-years-${i}`].value : e.years,
+      text: f[`experience-text-${i}`] ? f[`experience-text-${i}`].value : e.text
+    }));
+    
+    // Skills
+    if (content.skills) content.skills = content.skills.map((s,i) => ({
+      name: f[`skill-name-${i}`] ? f[`skill-name-${i}`].value : s.name,
+      value: f[`skill-value-${i}`] ? Number(f[`skill-value-${i}`].value) : s.value
+    }));
+
+    // Send to backend
+    const response = await fetch(`${API_URL}/api/update-content`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${adminToken}`
+      },
+      body: JSON.stringify(content)
+    });
+
+    const result = await response.json();
+    
+    if (result.success) {
+      return true;
+    } else {
+      console.error('Save failed:', result.error);
+      if (result.error === 'Unauthorized') sessionStorage.removeItem('admin-token');
+      return false;
+    }
+  } catch (error) {
+    console.error('Save error:', error);
+    return false;
+  }
+}
+
 // Enhanced notification system
 function showNotification(title, message, type = 'info') {
   const notification = document.createElement('div');
@@ -677,7 +775,22 @@ function renderProjects() {
     remove.type = 'button';
     remove.className = 'remove-btn';
     remove.textContent = 'Remove';
-    remove.onclick = () => { content.projects.splice(i,1); renderProjects(); };
+    remove.onclick = async (e) => { 
+      e.preventDefault();
+      e.stopPropagation();
+      const confirmed = await customConfirm(
+        'Remove Project', 
+        'Are you sure you want to remove this project? This action cannot be undone.',
+        'Remove',
+        'Cancel'
+      );
+      if (confirmed) {
+        content.projects.splice(i,1); 
+        renderProjects();
+        await saveContent(); // Auto-save after deletion
+        showNotification('Success', 'Project removed successfully', 'success');
+      }
+    };
     item.appendChild(remove);
     list.appendChild(item);
   });
@@ -736,7 +849,22 @@ function renderTestimonials() {
     remove.type = 'button';
     remove.className = 'remove-btn';
     remove.textContent = 'Remove';
-    remove.onclick = () => { content.testimonials.splice(i,1); renderTestimonials(); };
+    remove.onclick = async (e) => { 
+      e.preventDefault();
+      e.stopPropagation();
+      const confirmed = await customConfirm(
+        'Remove Testimonial', 
+        'Are you sure you want to remove this testimonial? This action cannot be undone.',
+        'Remove',
+        'Cancel'
+      );
+      if (confirmed) {
+        content.testimonials.splice(i,1); 
+        renderTestimonials();
+        await saveContent(); // Auto-save after deletion
+        showNotification('Success', 'Testimonial removed successfully', 'success');
+      }
+    };
     item.appendChild(remove);
     list.appendChild(item);
   });
@@ -837,7 +965,22 @@ function renderCertificates() {
     remove.type = 'button';
     remove.className = 'remove-btn';
     remove.textContent = 'Remove';
-    remove.onclick = () => { content.certificates.splice(i,1); renderCertificates(); };
+    remove.onclick = async (e) => { 
+      e.preventDefault();
+      e.stopPropagation();
+      const confirmed = await customConfirm(
+        'Remove Certificate', 
+        'Are you sure you want to remove this certificate? This action cannot be undone.',
+        'Remove',
+        'Cancel'
+      );
+      if (confirmed) {
+        content.certificates.splice(i,1); 
+        renderCertificates();
+        await saveContent(); // Auto-save after deletion
+        showNotification('Success', 'Certificate removed successfully', 'success');
+      }
+    };
     item.appendChild(remove);
     list.appendChild(item);
   });
@@ -894,7 +1037,22 @@ function renderEducation() {
     remove.type = 'button';
     remove.className = 'remove-btn';
     remove.textContent = 'Remove';
-    remove.onclick = () => { content.education.splice(i,1); renderEducation(); };
+    remove.onclick = async (e) => { 
+      e.preventDefault();
+      e.stopPropagation();
+      const confirmed = await customConfirm(
+        'Remove Education', 
+        'Are you sure you want to remove this education entry? This action cannot be undone.',
+        'Remove',
+        'Cancel'
+      );
+      if (confirmed) {
+        content.education.splice(i,1); 
+        renderEducation();
+        await saveContent(); // Auto-save after deletion
+        showNotification('Success', 'Education entry removed successfully', 'success');
+      }
+    };
     item.appendChild(remove);
     list.appendChild(item);
   });
@@ -952,7 +1110,22 @@ function renderExperience() {
     remove.type = 'button';
     remove.className = 'remove-btn';
     remove.textContent = 'Remove';
-    remove.onclick = () => { content.experience.splice(i,1); renderExperience(); };
+    remove.onclick = async (e) => { 
+      e.preventDefault();
+      e.stopPropagation();
+      const confirmed = await customConfirm(
+        'Remove Experience', 
+        'Are you sure you want to remove this experience entry? This action cannot be undone.',
+        'Remove',
+        'Cancel'
+      );
+      if (confirmed) {
+        content.experience.splice(i,1); 
+        renderExperience();
+        await saveContent(); // Auto-save after deletion
+        showNotification('Success', 'Experience entry removed successfully', 'success');
+      }
+    };
     item.appendChild(remove);
     list.appendChild(item);
   });
@@ -1034,7 +1207,22 @@ function renderSkills() {
     remove.type = 'button';
     remove.className = 'remove-btn';
     remove.textContent = 'Remove';
-    remove.onclick = () => { content.skills.splice(i,1); renderSkills(); };
+    remove.onclick = async (e) => { 
+      e.preventDefault();
+      e.stopPropagation();
+      const confirmed = await customConfirm(
+        'Remove Skill', 
+        'Are you sure you want to remove this skill? This action cannot be undone.',
+        'Remove',
+        'Cancel'
+      );
+      if (confirmed) {
+        content.skills.splice(i,1); 
+        renderSkills();
+        await saveContent(); // Auto-save after deletion
+        showNotification('Success', 'Skill removed successfully', 'success');
+      }
+    };
     item.appendChild(remove);
     list.appendChild(item);
   });
