@@ -2062,4 +2062,64 @@ function renderSettings() {
   
   socialSection.appendChild(socialList);
   tab.appendChild(socialSection);
+  
+  // Save Button
+  const saveButtonContainer = document.createElement('div');
+  saveButtonContainer.className = 'save-button-container';
+  saveButtonContainer.style.cssText = 'margin-top: 30px; text-align: center;';
+  
+  const saveButton = document.createElement('button');
+  saveButton.type = 'button';
+  saveButton.className = 'save-btn';
+  saveButton.innerHTML = '<ion-icon name="save-outline"></ion-icon> Save All Settings';
+  saveButton.style.cssText = `
+    background: linear-gradient(to bottom right, hsl(45, 100%, 71%) 0%, hsla(36, 100%, 69%, 0) 50%);
+    color: hsl(0, 0%, 100%);
+    font-size: 16px;
+    font-weight: 500;
+    padding: 15px 40px;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+  `;
+  
+  saveButton.onmouseover = function() {
+    this.style.transform = 'translateY(-2px)';
+    this.style.boxShadow = '0 16px 40px hsla(0, 0%, 0%, 0.25)';
+  };
+  
+  saveButton.onmouseout = function() {
+    this.style.transform = 'translateY(0)';
+    this.style.boxShadow = 'none';
+  };
+  
+  saveButton.onclick = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    saveButton.disabled = true;
+    saveButton.innerHTML = '<ion-icon name="hourglass-outline"></ion-icon> Saving...';
+    
+    const success = await saveContent();
+    
+    if (success) {
+      showNotification('Success', 'All settings saved successfully!', 'success');
+      saveButton.innerHTML = '<ion-icon name="checkmark-circle-outline"></ion-icon> Saved!';
+      setTimeout(() => {
+        saveButton.innerHTML = '<ion-icon name="save-outline"></ion-icon> Save All Settings';
+        saveButton.disabled = false;
+      }, 2000);
+    } else {
+      showNotification('Error', 'Failed to save settings. Please try again.', 'error');
+      saveButton.innerHTML = '<ion-icon name="save-outline"></ion-icon> Save All Settings';
+      saveButton.disabled = false;
+    }
+  };
+  
+  saveButtonContainer.appendChild(saveButton);
+  tab.appendChild(saveButtonContainer);
 }
