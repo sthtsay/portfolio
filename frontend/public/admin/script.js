@@ -1974,9 +1974,9 @@ function renderSettings() {
   addSocial.onclick = (e) => { 
     e.preventDefault();
     e.stopPropagation();
-    (content.socialMedia = content.socialMedia||[]).push({platform:'',url:'',icon:''}); 
+    (content.socialMedia = content.socialMedia||[]).unshift({platform:'',url:'',icon:''}); 
     renderSettings(); 
-    showNotification('Success', 'New social media form added', 'success');
+    showNotification('Success', 'New social media form added at top', 'success');
   };
   
   socialHeader.appendChild(socialTitle);
@@ -1987,7 +1987,7 @@ function renderSettings() {
   socialList.className = 'list-section';
   
   (content.socialMedia||[]).forEach((social, i) => {
-    const isNew = i === (content.socialMedia.length - 1) && isNewItem(social, ['platform', 'url']);
+    const isNew = i === 0 && isNewItem(social, ['platform', 'url']);
     const item = createListItem(isNew);
     
     // Platform dropdown
