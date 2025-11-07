@@ -1490,90 +1490,28 @@ async function deleteContact(contactId) {
 
 // Save to backend
 document.getElementById('save-btn').onclick = async function() {
-  if (!adminToken) {
-    const token = await requestAdminToken();
-    if (!token) {
-      customAlert('Authentication Required', 'Admin token is required to save changes.', 'warning');
-      return;
-    }
+  const saveBtn = this;
+  const originalText = saveBtn.innerHTML;
+  
+  // Disable button and show loading state
+  saveBtn.disabled = true;
+  saveBtn.innerHTML = '<ion-icon name="hourglass-outline"></ion-icon><span>Saving...</span>';
+  
+  // Use the saveContent function which handles all fields including settings
+  const success = await saveContent();
+  
+  if (success) {
+    showNotification('Success', 'All changes saved successfully!', 'success');
+    saveBtn.innerHTML = '<ion-icon name="checkmark-circle-outline"></ion-icon><span>Saved!</span>';
+    setTimeout(() => {
+      saveBtn.innerHTML = originalText;
+      saveBtn.disabled = false;
+    }, 2000);
+  } else {
+    showNotification('Error', 'Failed to save changes. Please try again.', 'error');
+    saveBtn.innerHTML = originalText;
+    saveBtn.disabled = false;
   }
-
-  // Gather all form data
-  const f = document.getElementById('admin-form');
-  // About
-  content.about = {
-    name: f['about-name'].value,
-    title: f['about-title'].value,
-    description: f['about-description'].value.split(/\n\n+/).map(s=>s.trim()).filter(Boolean)
-  };
-  // Services
-  if (content.services) content.services = content.services.map((s,i) => ({
-    icon: f[`service-icon-${i}`].value,
-    title: f[`service-title-${i}`].value,
-    text: f[`service-text-${i}`].value
-  }));
-  // Projects
-  if (content.projects) content.projects = content.projects.map((p,i) => ({
-    title: f[`project-title-${i}`].value,
-    category: f[`project-category-${i}`].value,
-    type: f[`project-type-${i}`].value,
-    image: f[`project-image-${i}`].value,
-    alt: f[`project-alt-${i}`].value
-  }));
-  // Testimonials
-  if (content.testimonials) content.testimonials = content.testimonials.map((t,i) => ({
-    avatar: f[`testimonial-avatar-${i}`].value,
-    name: f[`testimonial-name-${i}`].value,
-    text: f[`testimonial-text-${i}`].value
-  }));
-  // Certificates
-  if (content.certificates) content.certificates = content.certificates.map((c,i) => ({
-    logo: f[`certificate-logo-${i}`].value,
-    alt: f[`certificate-alt-${i}`].value
-  }));
-  // Education
-  if (content.education) content.education = content.education.map((e,i) => ({
-    school: f[`education-school-${i}`].value,
-    years: f[`education-years-${i}`].value,
-    text: f[`education-text-${i}`].value
-  }));
-  // Experience
-  if (content.experience) content.experience = content.experience.map((e,i) => ({
-    title: f[`experience-title-${i}`].value,
-    company: f[`experience-company-${i}`].value,
-    years: f[`experience-years-${i}`].value,
-    text: f[`experience-text-${i}`].value
-  }));
-  // Skills
-  if (content.skills) content.skills = content.skills.map((s,i) => ({
-    name: f[`skill-name-${i}`].value,
-    value: Number(f[`skill-value-${i}`].value)
-  }));
-
-  // Send to backend
-  fetch(`${API_URL}/api/update-content`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${adminToken}`
-    },
-    body: JSON.stringify(content)
-  })
-  .then(r => r.json())
-  .then(res => {
-    if (res.success) {
-      document.getElementById('msg').textContent = 'Content updated successfully!';
-      document.getElementById('msg').className = 'msg success';
-    } else {
-      document.getElementById('msg').textContent = 'Error: ' + (res.error || 'Unknown error');
-      document.getElementById('msg').className = 'msg error';
-      if (res.error === 'Unauthorized') sessionStorage.removeItem('admin-token');
-    }
-  })
-  .catch(() => {
-    document.getElementById('msg').textContent = 'Error: Could not connect to backend.';
-    document.getElementById('msg').className = 'msg error';
-  });
 };
 
 // Render dashboard charts
