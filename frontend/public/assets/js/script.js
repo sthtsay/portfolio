@@ -288,9 +288,24 @@ document.addEventListener("DOMContentLoaded", function () {
           { type: 'website projects', id: 'website-projects-list' },
           { type: 'java projects', id: 'java-projects-list' }
         ];
+        
+        console.log('🎯 Rendering projects by type:');
+        content.projects.forEach((project, index) => {
+          console.log(`Project ${index}:`, {
+            title: project.title,
+            type: `"${project.type}"`,
+            category: project.category,
+            image: project.image
+          });
+        });
+        
         projectTypes.forEach(pt => {
+          const filteredProjects = content.projects.filter(p => p.type === pt.type);
+          console.log(`📂 ${pt.type}:`, filteredProjects.length, 'projects');
+          filteredProjects.forEach(p => console.log(`  - ${p.title}`));
+          
           if (document.getElementById(pt.id)) {
-            document.getElementById(pt.id).innerHTML = content.projects.filter(p => p.type === pt.type).map(project => `
+            const html = filteredProjects.map(project => `
               <li class="project-item active" data-filter-item data-category="${pt.type}">
                 <a href="#">
                   <figure class="project-img">
@@ -304,6 +319,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 </a>
               </li>
             `).join('');
+            
+            document.getElementById(pt.id).innerHTML = html;
+            console.log(`📝 Rendered ${filteredProjects.length} projects to ${pt.id}`);
           }
         });
 
