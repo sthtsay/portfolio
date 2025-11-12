@@ -43,9 +43,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Function to fetch and render content
   function fetchAndRenderContent() {
+    console.log('🔄 Fetching content from:', BACKEND_URL + '/content.json');
+    
     fetch(BACKEND_URL + '/content.json')
-      .then(response => response.json())
+      .then(response => {
+        console.log('📡 Content fetch response status:', response.status);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        return response.json();
+      })
       .then(content => {
+        console.log('✅ Content loaded successfully. Projects count:', content.projects?.length || 0);
+        if (content.projects) {
+          console.log('📋 Projects:', content.projects.map(p => p.title));
+        }
         if (loadingDiv) loadingDiv.remove();
         // ABOUT
         if (document.getElementById('about-name')) {
@@ -347,10 +359,39 @@ document.addEventListener("DOMContentLoaded", function () {
         // Trigger "All" filter to show all projects
         filterFunc('all');
       })
-      .catch(() => {
-        if (loadingDiv) loadingDiv.textContent = 'Failed to load content. Please check your content.json.';
+      .catch((error) => {
+        console.error('❌ Failed to load content:', error);
+        if (loadingDiv) {
+          loadingDiv.textContent = 'Failed to load content: ' + error.message;
+          loadingDiv.style.color = '#f44336';
+        }
         if (main) main.prepend(loadingDiv);
       });
+  }
+  
+  // Add manual refresh button for testing
+  const refreshButton = document.createElement('button');
+  refreshButton.textContent = '🔄 Refresh Content';
+  refreshButton.style.cssText = `
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #ffc857;
+    color: #000;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    font-size: 12px;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  `;
+  refreshButton.onclick = () => {
+    console.log('🔄 Manual refresh triggered');
+    fetchAndRenderContent();
+  };
+  document.body.appendChild(refreshButton);
   }
 
   // Initial fetch
@@ -365,44 +406,92 @@ document.addEventListener("DOMContentLoaded", function () {
   const script = document.createElement('script');
   script.src = BACKEND_URL + '/socket.io/socket.io.js';
   script.onload = function() {
-    const socket = io(BACKEND_URL);
+    console.log('Socket.io script loaded, attempting connection to:', BACKEND_URL);
     
-    socket.on('connect', () => {
-      console.log('Socket.io connected to backend');
-    });
-    
-    socket.on('content-updated', (data) => {
-      console.log('Content updated event received:', data);
-      // Show notification to user
-      const notification = document.createElement('div');
-      notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: #4CAF50;
-        color: white;
-        padding: 15px 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        z-index: 10000;
-        font-family: 'Poppins', sans-serif;
-      `;
-      notification.textContent = 'Content updated! Refreshing...';
-      document.body.appendChild(notification);
+    try {
+      const socket = io(BACKEND_URL, {
+        transports: ['websocket', 'polling'],
+        timeout: 10000,
+        forceNew: true
+      });
       
-      // Refresh content
-      fetchAndRenderContent();
+      socket.on('connect', () => {
+        console.log('✅ Socket.io connected successfully to backend');
+        
+        // Show connection success notification
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          background: #2196F3;
+          color: white;
+          padding: 10px 15px;
+          border-radius: 8px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+          z-index: 10000;
+          font-family: 'Poppins', sans-serif;
+          font-size: 12px;
+        `;
+        notification.textContent = 'Real-time updates connected ✓';
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+          notification.remove();
+        }, 2000);
+      });
       
-      // Remove notification after 3 seconds
-      setTimeout(() => {
-        notification.remove();
-      }, 3000);
-    });
-    
-    socket.on('disconnect', () => {
-      console.log('Socket.io disconnected from backend');
-    });
+      socket.on('connect_error', (error) => {
+        console.error('❌ Socket.io connection error:', error);
+      });
+      
+      socket.on('content-updated', (data) => {
+        console.log('📢 Content updated event received:', data);
+        
+        // Show notification to user
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          background: #4CAF50;
+          color: white;
+          padding: 15px 20px;
+          border-radius: 8px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+          z-index: 10000;
+          font-family: 'Poppins', sans-serif;
+        `;
+        notification.textContent = 'Content updated! Refreshing...';
+        document.body.appendChild(notification);
+        
+        // Refresh content
+        console.log('🔄 Refreshing content...');
+        fetchAndRenderContent();
+        
+        // Remove notification after 3 seconds
+        setTimeout(() => {
+          notification.remove();
+        }, 3000);
+      });
+      
+      socket.on('disconnect', (reason) => {
+        console.log('🔌 Socket.io disconnected from backend. Reason:', reason);
+      });
+      
+      socket.on('reconnect', (attemptNumber) => {
+        console.log('🔄 Socket.io reconnected after', attemptNumber, 'attempts');
+      });
+      
+    } catch (error) {
+      console.error('❌ Failed to initialize Socket.io:', error);
+    }
   };
+  
+  script.onerror = function() {
+    console.error('❌ Failed to load Socket.io script from:', BACKEND_URL + '/socket.io/socket.io.js');
+  };
+  
   document.head.appendChild(script);
 
   // Sidebar toggle functionality
