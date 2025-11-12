@@ -235,44 +235,123 @@ function createCategoryDropdown(currentValue, name) {
   return select;
 }
 
+// Helper: update type dropdown based on category
+function updateTypeDropdown(typeSelect, category, currentValue = '') {
+  // Clear existing options
+  typeSelect.innerHTML = '';
+  
+  // Category to Type mapping
+  const categoryTypeMap = {
+    'Web Development': [
+      { value: 'website projects', label: 'Website Projects' },
+      { value: 'api projects', label: 'API Projects' }
+    ],
+    'Mobile Development': [
+      { value: 'mobile projects', label: 'Mobile Projects' }
+    ],
+    'Desktop Application': [
+      { value: 'desktop projects', label: 'Desktop Projects' }
+    ],
+    'Python Development': [
+      { value: 'python projects', label: 'Python Projects' },
+      { value: 'machine learning projects', label: 'Machine Learning Projects' },
+      { value: 'data analysis projects', label: 'Data Analysis Projects' }
+    ],
+    'Java Development': [
+      { value: 'java projects', label: 'Java Projects' },
+      { value: 'desktop projects', label: 'Desktop Projects' },
+      { value: 'api projects', label: 'API Projects' }
+    ],
+    'JavaScript Development': [
+      { value: 'website projects', label: 'Website Projects' },
+      { value: 'mobile projects', label: 'Mobile Projects' },
+      { value: 'api projects', label: 'API Projects' }
+    ],
+    'Database Design': [
+      { value: 'database projects', label: 'Database Projects' }
+    ],
+    'API Development': [
+      { value: 'api projects', label: 'API Projects' }
+    ],
+    'UI/UX Design': [
+      { value: 'design projects', label: 'UI/UX Design Projects' }
+    ],
+    'Data Analysis': [
+      { value: 'data analysis projects', label: 'Data Analysis Projects' }
+    ],
+    'Machine Learning': [
+      { value: 'machine learning projects', label: 'Machine Learning Projects' },
+      { value: 'data analysis projects', label: 'Data Analysis Projects' }
+    ],
+    'DevOps': [
+      { value: 'devops projects', label: 'DevOps Projects' }
+    ],
+    'Testing & QA': [
+      { value: 'testing projects', label: 'Testing & QA Projects' }
+    ],
+    'Other': [
+      { value: 'other projects', label: 'Other Projects' }
+    ]
+  };
+  
+  // Add empty option
+  const emptyOption = document.createElement('option');
+  emptyOption.value = '';
+  emptyOption.textContent = category ? 'Select Type' : 'Select Category First';
+  typeSelect.appendChild(emptyOption);
+  
+  // Add relevant types based on category
+  if (category && categoryTypeMap[category]) {
+    categoryTypeMap[category].forEach(type => {
+      const option = document.createElement('option');
+      option.value = type.value;
+      option.textContent = type.label;
+      if (currentValue === type.value) {
+        option.selected = true;
+      }
+      typeSelect.appendChild(option);
+    });
+  } else if (!category) {
+    // If no category selected, show all types
+    const allTypes = [
+      { value: 'python projects', label: 'Python Projects' },
+      { value: 'website projects', label: 'Website Projects' },
+      { value: 'java projects', label: 'Java Projects' },
+      { value: 'mobile projects', label: 'Mobile Projects' },
+      { value: 'desktop projects', label: 'Desktop Projects' },
+      { value: 'api projects', label: 'API Projects' },
+      { value: 'database projects', label: 'Database Projects' },
+      { value: 'machine learning projects', label: 'Machine Learning Projects' },
+      { value: 'data analysis projects', label: 'Data Analysis Projects' },
+      { value: 'devops projects', label: 'DevOps Projects' },
+      { value: 'testing projects', label: 'Testing & QA Projects' },
+      { value: 'design projects', label: 'UI/UX Design Projects' },
+      { value: 'other projects', label: 'Other Projects' }
+    ];
+    
+    allTypes.forEach(type => {
+      const option = document.createElement('option');
+      option.value = type.value;
+      option.textContent = type.label;
+      if (currentValue === type.value) {
+        option.selected = true;
+      }
+      typeSelect.appendChild(option);
+    });
+  }
+}
+
 // Helper: create type dropdown
 function createTypeDropdown(currentValue, name) {
   const select = document.createElement('select');
   select.className = 'form-input';
   select.name = name;
   
-  const types = [
-    { value: 'python projects', label: 'Python Projects' },
-    { value: 'website projects', label: 'Website Projects' },
-    { value: 'java projects', label: 'Java Projects' },
-    { value: 'mobile projects', label: 'Mobile Projects' },
-    { value: 'desktop projects', label: 'Desktop Projects' },
-    { value: 'api projects', label: 'API Projects' },
-    { value: 'database projects', label: 'Database Projects' },
-    { value: 'machine learning projects', label: 'Machine Learning Projects' },
-    { value: 'data analysis projects', label: 'Data Analysis Projects' },
-    { value: 'devops projects', label: 'DevOps Projects' },
-    { value: 'testing projects', label: 'Testing & QA Projects' },
-    { value: 'design projects', label: 'UI/UX Design Projects' },
-    { value: 'other projects', label: 'Other Projects' }
-  ];
-  
-  // Add empty option
+  // Initialize with empty state - will be populated by updateTypeDropdown
   const emptyOption = document.createElement('option');
   emptyOption.value = '';
-  emptyOption.textContent = 'Select Type';
+  emptyOption.textContent = 'Select Category First';
   select.appendChild(emptyOption);
-  
-  // Add type options
-  types.forEach(type => {
-    const option = document.createElement('option');
-    option.value = type.value;
-    option.textContent = type.label;
-    if (currentValue === type.value) {
-      option.selected = true;
-    }
-    select.appendChild(option);
-  });
   
   return select;
 }
@@ -1028,8 +1107,26 @@ function renderProjects() {
     const item = document.createElement('div');
     item.className = 'list-item';
     item.appendChild(labeledInput('Title', createInput('text', project.title, 'Project Title', `project-title-${i}`)));
-    item.appendChild(labeledInput('Category', createCategoryDropdown(project.category, `project-category-${i}`)));
-    item.appendChild(labeledInput('Type', createTypeDropdown(project.type, `project-type-${i}`)));
+    
+    // Create connected category and type dropdowns
+    const categoryGroup = labeledInput('Category', createCategoryDropdown(project.category, `project-category-${i}`));
+    const typeGroup = labeledInput('Type', createTypeDropdown(project.type, `project-type-${i}`));
+    
+    // Connect category to type dropdown
+    const categorySelect = categoryGroup.querySelector('select');
+    const typeSelect = typeGroup.querySelector('select');
+    
+    categorySelect.addEventListener('change', function() {
+      updateTypeDropdown(typeSelect, this.value, project.type);
+    });
+    
+    // Initialize type dropdown based on current category
+    if (project.category) {
+      updateTypeDropdown(typeSelect, project.category, project.type);
+    }
+    
+    item.appendChild(categoryGroup);
+    item.appendChild(typeGroup);
     item.appendChild(createImageUploadInput(`project-image-${i}`, project.image));
     item.appendChild(labeledInput('Alt text', createInput('text', project.alt, 'Project Image', `project-alt-${i}`)));
     const remove = document.createElement('button');
