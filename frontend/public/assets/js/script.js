@@ -340,9 +340,12 @@ document.addEventListener("DOMContentLoaded", function () {
         if (skeletonList && realProjects.length > 0) {
           skeletonList.style.display = 'none';
           realProjects.forEach(list => {
-            list.style.display = '';
+            list.style.display = 'block'; // Explicitly set to block instead of empty string
           });
         }
+        
+        // Trigger "All" filter to show all projects
+        filterFunc('all');
       })
       .catch(() => {
         if (loadingDiv) loadingDiv.textContent = 'Failed to load content. Please check your content.json.';
