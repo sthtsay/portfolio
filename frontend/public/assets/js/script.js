@@ -392,7 +392,6 @@ document.addEventListener("DOMContentLoaded", function () {
     fetchAndRenderContent();
   };
   document.body.appendChild(refreshButton);
-  }
 
   // Initial fetch
   fetchAndRenderContent();

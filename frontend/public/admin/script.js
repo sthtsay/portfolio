@@ -1933,8 +1933,9 @@ function renderContentChart() {
       }
     }
   };
-}//
- SETTINGS
+}
+
+// SETTINGS
 function renderSettings() {
   const tab = document.getElementById('tab-settings');
   tab.innerHTML = '';
