@@ -244,7 +244,17 @@ function createTypeDropdown(currentValue, name) {
   const types = [
     { value: 'python projects', label: 'Python Projects' },
     { value: 'website projects', label: 'Website Projects' },
-    { value: 'java projects', label: 'Java Projects' }
+    { value: 'java projects', label: 'Java Projects' },
+    { value: 'mobile projects', label: 'Mobile Projects' },
+    { value: 'desktop projects', label: 'Desktop Projects' },
+    { value: 'api projects', label: 'API Projects' },
+    { value: 'database projects', label: 'Database Projects' },
+    { value: 'machine learning projects', label: 'Machine Learning Projects' },
+    { value: 'data analysis projects', label: 'Data Analysis Projects' },
+    { value: 'devops projects', label: 'DevOps Projects' },
+    { value: 'testing projects', label: 'Testing & QA Projects' },
+    { value: 'design projects', label: 'UI/UX Design Projects' },
+    { value: 'other projects', label: 'Other Projects' }
   ];
   
   // Add empty option

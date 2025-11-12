@@ -286,7 +286,17 @@ document.addEventListener("DOMContentLoaded", function () {
         const projectTypes = [
           { type: 'python projects', id: 'python-projects-list' },
           { type: 'website projects', id: 'website-projects-list' },
-          { type: 'java projects', id: 'java-projects-list' }
+          { type: 'java projects', id: 'java-projects-list' },
+          { type: 'mobile projects', id: 'mobile-projects-list' },
+          { type: 'desktop projects', id: 'desktop-projects-list' },
+          { type: 'api projects', id: 'api-projects-list' },
+          { type: 'database projects', id: 'database-projects-list' },
+          { type: 'machine learning projects', id: 'ml-projects-list' },
+          { type: 'data analysis projects', id: 'data-projects-list' },
+          { type: 'devops projects', id: 'devops-projects-list' },
+          { type: 'testing projects', id: 'testing-projects-list' },
+          { type: 'design projects', id: 'design-projects-list' },
+          { type: 'other projects', id: 'other-projects-list' }
         ];
         
         console.log('🎯 Rendering projects by type:');
