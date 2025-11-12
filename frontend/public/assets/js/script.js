@@ -337,18 +337,44 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // --- FILTER LOGIC: re-initialize after rendering projects ---
         const filterItems = document.querySelectorAll("[data-filter-item]");
+        const projectLists = document.querySelectorAll(".real-projects");
+        
         const filterFunc = function (selectedValue) {
           const normalizedValue = selectedValue.trim().toLowerCase();
-          filterItems.forEach(item => {
-            const itemCategory = (item.dataset.category || '').trim().toLowerCase();
-            if (normalizedValue === "all") {
+          
+          console.log('🔍 Filtering by:', normalizedValue);
+          
+          if (normalizedValue === "all") {
+            // Show all project lists and all items
+            projectLists.forEach(list => {
+              list.style.display = 'block';
+            });
+            filterItems.forEach(item => {
               item.classList.add("active");
-            } else if (normalizedValue === itemCategory) {
-              item.classList.add("active");
-            } else {
-              item.classList.remove("active");
-            }
-          });
+            });
+            console.log('📋 Showing all projects');
+          } else {
+            // Hide all lists first
+            projectLists.forEach(list => {
+              list.style.display = 'none';
+            });
+            
+            // Show only matching items and their lists
+            filterItems.forEach(item => {
+              const itemCategory = (item.dataset.category || '').trim().toLowerCase();
+              if (normalizedValue === itemCategory) {
+                item.classList.add("active");
+                // Show the parent list
+                const parentList = item.closest('.real-projects');
+                if (parentList) {
+                  parentList.style.display = 'block';
+                }
+              } else {
+                item.classList.remove("active");
+              }
+            });
+            console.log('📋 Filtered to:', normalizedValue);
+          }
         };
         // Attach filter button listeners again (in case they were lost)
         const filterBtn = document.querySelectorAll("[data-filter-btn]");
@@ -385,6 +411,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         
         // Trigger "All" filter to show all projects
+        console.log('🎯 Triggering "All" filter to show all projects');
         filterFunc('all');
       })
       .catch((error) => {
