@@ -8,7 +8,7 @@ const tokenSubmitBtn = document.getElementById('token-submit-btn');
 const tokenCancelBtn = document.getElementById('token-cancel-btn');
 
 let resolveTokenPromise = null;
-
+  ``
 function requestAdminToken() {
   return new Promise((resolve) => {
     tokenModal.style.display = 'flex';
@@ -235,17 +235,15 @@ function createImageUploadInput(name, currentImagePath) {
     const file = e.target.files[0];
     if (!file) return;
 
+    // Check for admin token first (without prompting)
+    if (!adminToken) {
+      showNotification('Error', 'Please enter admin token first by clicking Save Changes', 'error');
+      fileInputLabel.textContent = 'Choose File';
+      return;
+    }
+
     // Show selected file name
     fileInputLabel.textContent = file.name;
-
-    if (!adminToken) {
-      const token = await requestAdminToken();
-      if (!token) {
-        customAlert('Authentication Required', 'Admin token is required to upload images.', 'warning');
-        fileInputLabel.textContent = 'Choose File';
-        return;
-      }
-    }
 
     const formData = new FormData();
     formData.append('image', file);
@@ -254,42 +252,61 @@ function createImageUploadInput(name, currentImagePath) {
     fileInputLabel.textContent = 'Uploading...';
     fileInputLabel.style.opacity = '0.6';
     
-    fetch(`${API_URL}/api/upload`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${adminToken}` },
-      body: formData
-    })
-    .then(async res => {
+    try {
+      const res = await fetch(`${API_URL}/api/upload`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${adminToken}` },
+        body: formData
+      });
+      
       const data = await res.json();
+      
       if (!res.ok) {
         throw new Error(data.error || `Upload failed with status ${res.status}`);
       }
-      return data;
-    })
-    .then(data => {
+      
       if (data.filePath) {
+        // Update hidden input with new file path
         hiddenInput.value = data.filePath;
+        
+        // Update preview
         preview.src = `${API_URL}/${data.filePath}`;
         preview.style.opacity = '1';
+        
+        // Show success feedback
         fileInputLabel.textContent = 'Upload Success ✓';
         fileInputLabel.style.opacity = '1';
-        showNotification('Success', 'Image uploaded successfully!', 'success');
+        
+        // Auto-save content after successful upload
+        showNotification('Success', 'Image uploaded! Saving changes...', 'success');
+        
+        // Save content to update portfolio
+        const saveSuccess = await saveContent();
+        
+        if (saveSuccess) {
+          showNotification('Success', 'Image uploaded and portfolio updated!', 'success');
+        } else {
+          showNotification('Warning', 'Image uploaded but failed to save. Please click Save Changes.', 'warning');
+        }
+        
         setTimeout(() => {
           fileInputLabel.textContent = 'Choose File';
         }, 2000);
       } else {
         throw new Error('No file path returned from server');
       }
-    })
-    .catch(err => {
+    } catch (err) {
       console.error('Upload error:', err);
-      customAlert('Upload Failed', err.message || 'An error occurred during upload.', 'error');
+      showNotification('Error', err.message || 'An error occurred during upload.', 'error');
       fileInputLabel.textContent = 'Choose File';
       fileInputLabel.style.opacity = '1';
+      
       if (err.message.includes('Unauthorized')) {
         sessionStorage.removeItem('admin-token');
+        adminToken = null;
+        showNotification('Error', 'Session expired. Please enter admin token again.', 'error');
       }
-    });
+    }
   };
   container.appendChild(fileInput);
 
