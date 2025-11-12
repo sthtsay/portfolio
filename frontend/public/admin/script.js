@@ -202,8 +202,20 @@ function createImageUploadInput(name, currentImagePath) {
   container.appendChild(label);
 
   const preview = document.createElement('img');
-  preview.src = currentImagePath.startsWith('uploads/') ? `${API_URL}/${currentImagePath}` : `./assets/images/${currentImagePath}`;
+  // Handle empty or undefined image paths
+  if (!currentImagePath || currentImagePath === '') {
+    preview.src = './assets/images/placeholder.png'; // Use placeholder for empty images
+    preview.style.opacity = '0.5';
+  } else if (currentImagePath.startsWith('uploads/')) {
+    preview.src = `${API_URL}/${currentImagePath}`;
+  } else {
+    preview.src = currentImagePath.startsWith('./') ? currentImagePath : `./assets/images/${currentImagePath}`;
+  }
   preview.className = 'image-preview';
+  preview.onerror = function() {
+    // If image fails to load, show placeholder
+    this.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect fill="%23ddd" width="200" height="200"/%3E%3Ctext fill="%23999" x="50%25" y="50%25" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E';
+  };
   container.appendChild(preview);
 
   const fileInputId = `file-input-${name}`;
@@ -238,22 +250,46 @@ function createImageUploadInput(name, currentImagePath) {
     const formData = new FormData();
     formData.append('image', file);
 
+    // Show uploading state
+    fileInputLabel.textContent = 'Uploading...';
+    fileInputLabel.style.opacity = '0.6';
+    
     fetch(`${API_URL}/api/upload`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${adminToken}` },
       body: formData
     })
-    .then(res => res.json())
+    .then(async res => {
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || `Upload failed with status ${res.status}`);
+      }
+      return data;
+    })
     .then(data => {
       if (data.filePath) {
         hiddenInput.value = data.filePath;
         preview.src = `${API_URL}/${data.filePath}`;
+        preview.style.opacity = '1';
+        fileInputLabel.textContent = 'Upload Success ✓';
+        fileInputLabel.style.opacity = '1';
+        showNotification('Success', 'Image uploaded successfully!', 'success');
+        setTimeout(() => {
+          fileInputLabel.textContent = 'Choose File';
+        }, 2000);
       } else {
-        customAlert('Upload Failed', data.error || 'Unknown error occurred during upload.', 'error');
-        if (data.error === 'Unauthorized') sessionStorage.removeItem('admin-token');
+        throw new Error('No file path returned from server');
       }
     })
-    .catch(err => customAlert('Upload Error', 'An error occurred during upload: ' + err.message, 'error'));
+    .catch(err => {
+      console.error('Upload error:', err);
+      customAlert('Upload Failed', err.message || 'An error occurred during upload.', 'error');
+      fileInputLabel.textContent = 'Choose File';
+      fileInputLabel.style.opacity = '1';
+      if (err.message.includes('Unauthorized')) {
+        sessionStorage.removeItem('admin-token');
+      }
+    });
   };
   container.appendChild(fileInput);
 
