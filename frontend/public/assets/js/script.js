@@ -387,29 +387,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
   }
   
-  // Add manual refresh button for testing
-  const refreshButton = document.createElement('button');
-  refreshButton.textContent = '🔄 Refresh Content';
-  refreshButton.style.cssText = `
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #ffc857;
-    color: #000;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-family: 'Poppins', sans-serif;
-    font-size: 12px;
-    z-index: 1000;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  `;
-  refreshButton.onclick = () => {
-    console.log('🔄 Manual refresh triggered');
-    fetchAndRenderContent();
-  };
-  document.body.appendChild(refreshButton);
+  // Manual refresh button removed - real-time updates work automatically
 
   // Initial fetch
   fetchAndRenderContent();

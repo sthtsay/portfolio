@@ -192,6 +192,81 @@ function labeledInput(labelText, input) {
   return div;
 }
 
+// Helper: create category dropdown
+function createCategoryDropdown(currentValue, name) {
+  const select = document.createElement('select');
+  select.className = 'form-input';
+  select.name = name;
+  
+  const categories = [
+    'Web Development',
+    'Mobile Development', 
+    'Desktop Application',
+    'Python Development',
+    'Java Development',
+    'JavaScript Development',
+    'Database Design',
+    'API Development',
+    'UI/UX Design',
+    'Data Analysis',
+    'Machine Learning',
+    'DevOps',
+    'Testing & QA',
+    'Other'
+  ];
+  
+  // Add empty option
+  const emptyOption = document.createElement('option');
+  emptyOption.value = '';
+  emptyOption.textContent = 'Select Category';
+  select.appendChild(emptyOption);
+  
+  // Add category options
+  categories.forEach(category => {
+    const option = document.createElement('option');
+    option.value = category;
+    option.textContent = category;
+    if (currentValue === category) {
+      option.selected = true;
+    }
+    select.appendChild(option);
+  });
+  
+  return select;
+}
+
+// Helper: create type dropdown
+function createTypeDropdown(currentValue, name) {
+  const select = document.createElement('select');
+  select.className = 'form-input';
+  select.name = name;
+  
+  const types = [
+    { value: 'python projects', label: 'Python Projects' },
+    { value: 'website projects', label: 'Website Projects' },
+    { value: 'java projects', label: 'Java Projects' }
+  ];
+  
+  // Add empty option
+  const emptyOption = document.createElement('option');
+  emptyOption.value = '';
+  emptyOption.textContent = 'Select Type';
+  select.appendChild(emptyOption);
+  
+  // Add type options
+  types.forEach(type => {
+    const option = document.createElement('option');
+    option.value = type.value;
+    option.textContent = type.label;
+    if (currentValue === type.value) {
+      option.selected = true;
+    }
+    select.appendChild(option);
+  });
+  
+  return select;
+}
+
 // Helper: create image upload input
 function createImageUploadInput(name, currentImagePath) {
   const container = document.createElement('div');
@@ -943,8 +1018,8 @@ function renderProjects() {
     const item = document.createElement('div');
     item.className = 'list-item';
     item.appendChild(labeledInput('Title', createInput('text', project.title, 'Project Title', `project-title-${i}`)));
-    item.appendChild(labeledInput('Category', createInput('text', project.category, 'Web Development', `project-category-${i}`)));
-    item.appendChild(labeledInput('Type', createInput('text', project.type, 'python projects', `project-type-${i}`)));
+    item.appendChild(labeledInput('Category', createCategoryDropdown(project.category, `project-category-${i}`)));
+    item.appendChild(labeledInput('Type', createTypeDropdown(project.type, `project-type-${i}`)));
     item.appendChild(createImageUploadInput(`project-image-${i}`, project.image));
     item.appendChild(labeledInput('Alt text', createInput('text', project.alt, 'Project Image', `project-alt-${i}`)));
     const remove = document.createElement('button');
