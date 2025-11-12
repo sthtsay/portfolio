@@ -366,8 +366,41 @@ document.addEventListener("DOMContentLoaded", function () {
   script.src = BACKEND_URL + '/socket.io/socket.io.js';
   script.onload = function() {
     const socket = io(BACKEND_URL);
-    socket.on('content-updated', () => {
+    
+    socket.on('connect', () => {
+      console.log('Socket.io connected to backend');
+    });
+    
+    socket.on('content-updated', (data) => {
+      console.log('Content updated event received:', data);
+      // Show notification to user
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #4CAF50;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        z-index: 10000;
+        font-family: 'Poppins', sans-serif;
+      `;
+      notification.textContent = 'Content updated! Refreshing...';
+      document.body.appendChild(notification);
+      
+      // Refresh content
       fetchAndRenderContent();
+      
+      // Remove notification after 3 seconds
+      setTimeout(() => {
+        notification.remove();
+      }, 3000);
+    });
+    
+    socket.on('disconnect', () => {
+      console.log('Socket.io disconnected from backend');
     });
   };
   document.head.appendChild(script);
