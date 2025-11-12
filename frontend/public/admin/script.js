@@ -536,28 +536,37 @@ async function saveContent() {
       };
     }
     
-    // Services
-    if (content.services) content.services = content.services.map((s,i) => ({
-      icon: f[`service-icon-${i}`] ? f[`service-icon-${i}`].value : s.icon,
-      title: f[`service-title-${i}`] ? f[`service-title-${i}`].value : s.title,
-      text: f[`service-text-${i}`] ? f[`service-text-${i}`].value : s.text
-    }));
+    // Services - filter out empty entries
+    if (content.services) {
+      content.services = content.services.map((s,i) => ({
+        icon: f[`service-icon-${i}`] ? f[`service-icon-${i}`].value : s.icon,
+        title: f[`service-title-${i}`] ? f[`service-title-${i}`].value : s.title,
+        text: f[`service-text-${i}`] ? f[`service-text-${i}`].value : s.text
+      })).filter(service => service.title && service.title.trim() !== '');
+    }
     
-    // Projects
-    if (content.projects) content.projects = content.projects.map((p,i) => ({
-      title: f[`project-title-${i}`] ? f[`project-title-${i}`].value : p.title,
-      category: f[`project-category-${i}`] ? f[`project-category-${i}`].value : p.category,
-      type: f[`project-type-${i}`] ? f[`project-type-${i}`].value : p.type,
-      image: f[`project-image-${i}`] ? f[`project-image-${i}`].value : p.image,
-      alt: f[`project-alt-${i}`] ? f[`project-alt-${i}`].value : p.alt
-    }));
+    // Projects - filter out empty entries
+    if (content.projects) {
+      content.projects = content.projects.map((p,i) => ({
+        title: f[`project-title-${i}`] ? f[`project-title-${i}`].value : p.title,
+        category: f[`project-category-${i}`] ? f[`project-category-${i}`].value : p.category,
+        type: f[`project-type-${i}`] ? f[`project-type-${i}`].value : p.type,
+        image: f[`project-image-${i}`] ? f[`project-image-${i}`].value : p.image,
+        alt: f[`project-alt-${i}`] ? f[`project-alt-${i}`].value : p.alt
+      })).filter(project => {
+        // Only include projects with at least a title
+        return project.title && project.title.trim() !== '';
+      });
+    }
     
-    // Testimonials
-    if (content.testimonials) content.testimonials = content.testimonials.map((t,i) => ({
-      avatar: f[`testimonial-avatar-${i}`] ? f[`testimonial-avatar-${i}`].value : t.avatar,
-      name: f[`testimonial-name-${i}`] ? f[`testimonial-name-${i}`].value : t.name,
-      text: f[`testimonial-text-${i}`] ? f[`testimonial-text-${i}`].value : t.text
-    }));
+    // Testimonials - filter out empty entries
+    if (content.testimonials) {
+      content.testimonials = content.testimonials.map((t,i) => ({
+        avatar: f[`testimonial-avatar-${i}`] ? f[`testimonial-avatar-${i}`].value : t.avatar,
+        name: f[`testimonial-name-${i}`] ? f[`testimonial-name-${i}`].value : t.name,
+        text: f[`testimonial-text-${i}`] ? f[`testimonial-text-${i}`].value : t.text
+      })).filter(testimonial => testimonial.name && testimonial.name.trim() !== '' && testimonial.text && testimonial.text.trim() !== '');
+    }
     
     // Certificates
     if (content.certificates) content.certificates = content.certificates.map((c,i) => ({
