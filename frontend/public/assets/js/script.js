@@ -401,6 +401,84 @@ document.addEventListener("DOMContentLoaded", function () {
           };
         });
 
+        // Function to show/hide filter buttons based on available projects
+        function updateFilterButtonVisibility() {
+          const filterButtons = document.querySelectorAll('[data-filter-btn]');
+          const selectItems = document.querySelectorAll('[data-select-item]');
+          
+          // Map of button text to project types
+          const buttonTypeMap = {
+            'python projects': 'Python Projects',
+            'website projects': 'Website Projects', 
+            'java projects': 'Java Projects',
+            'mobile projects': 'Mobile Projects',
+            'desktop projects': 'Desktop Projects',
+            'api projects': 'API Projects',
+            'database projects': 'Database Projects',
+            'machine learning projects': 'Machine Learning Projects',
+            'data analysis projects': 'Data Analysis Projects',
+            'devops projects': 'DevOps Projects',
+            'testing projects': 'Testing Projects',
+            'design projects': 'Design Projects',
+            'other projects': 'Other Projects'
+          };
+          
+          // Count projects by type
+          const projectCounts = {};
+          content.projects.forEach(project => {
+            const type = project.type;
+            projectCounts[type] = (projectCounts[type] || 0) + 1;
+          });
+          
+          console.log('📊 Project counts by type:', projectCounts);
+          
+          // Update filter buttons
+          filterButtons.forEach(btn => {
+            const buttonText = btn.textContent.trim();
+            
+            if (buttonText === 'All') {
+              // Always show "All" button
+              btn.parentElement.style.display = 'block';
+              return;
+            }
+            
+            // Find matching project type
+            const projectType = Object.keys(buttonTypeMap).find(type => 
+              buttonTypeMap[type] === buttonText
+            );
+            
+            if (projectType && projectCounts[projectType] > 0) {
+              btn.parentElement.style.display = 'block';
+              console.log(`✅ Showing filter: ${buttonText} (${projectCounts[projectType]} projects)`);
+            } else {
+              btn.parentElement.style.display = 'none';
+              console.log(`❌ Hiding filter: ${buttonText} (0 projects)`);
+            }
+          });
+          
+          // Update dropdown items
+          selectItems.forEach(item => {
+            const buttonText = item.textContent.trim();
+            
+            if (buttonText === 'All') {
+              // Always show "All" option
+              item.style.display = 'block';
+              return;
+            }
+            
+            // Find matching project type
+            const projectType = Object.keys(buttonTypeMap).find(type => 
+              buttonTypeMap[type] === buttonText
+            );
+            
+            if (projectType && projectCounts[projectType] > 0) {
+              item.style.display = 'block';
+            } else {
+              item.style.display = 'none';
+            }
+          });
+        }
+
         // --- SKELETON LOADER: hide after real projects are rendered ---
         // (no redeclaration, just use the variables)
         if (skeletonList && realProjects.length > 0) {
@@ -409,6 +487,9 @@ document.addEventListener("DOMContentLoaded", function () {
             list.style.display = 'block'; // Explicitly set to block instead of empty string
           });
         }
+        
+        // Hide filter buttons that have no projects
+        updateFilterButtonVisibility();
         
         // Trigger "All" filter to show all projects
         console.log('🎯 Triggering "All" filter to show all projects');
