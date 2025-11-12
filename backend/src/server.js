@@ -392,9 +392,19 @@ app.post('/api/update-content', checkAdminToken, async (req, res) => {
 
   try {
     await fs.writeFile(CONTENT_PATH, JSON.stringify(content, null, 2));
-    io.emit('content-updated', { message: 'Content has been updated. Please refresh.' });
+    
+    // Small delay to ensure file is fully written
+    setTimeout(() => {
+      console.log('Emitting content-updated event to all clients');
+      io.emit('content-updated', { 
+        message: 'Content has been updated. Please refresh.',
+        timestamp: new Date().toISOString()
+      });
+    }, 100);
+    
     res.json({ success: true });
   } catch (err) {
+    console.error('Failed to write content file:', err);
     res.status(500).json({ error: 'Failed to write file' });
   }
 });
