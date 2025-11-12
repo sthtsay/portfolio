@@ -547,16 +547,41 @@ async function saveContent() {
     
     // Projects - filter out empty entries
     if (content.projects) {
-      content.projects = content.projects.map((p,i) => ({
-        title: f[`project-title-${i}`] ? f[`project-title-${i}`].value : p.title,
-        category: f[`project-category-${i}`] ? f[`project-category-${i}`].value : p.category,
-        type: f[`project-type-${i}`] ? f[`project-type-${i}`].value : p.type,
-        image: f[`project-image-${i}`] ? f[`project-image-${i}`].value : p.image,
-        alt: f[`project-alt-${i}`] ? f[`project-alt-${i}`].value : p.alt
-      })).filter(project => {
-        // Only include projects with at least a title
-        return project.title && project.title.trim() !== '';
+      console.log('Original projects:', content.projects);
+      
+      const mappedProjects = content.projects.map((p,i) => {
+        const titleField = f[`project-title-${i}`];
+        const categoryField = f[`project-category-${i}`];
+        const typeField = f[`project-type-${i}`];
+        const imageField = f[`project-image-${i}`];
+        const altField = f[`project-alt-${i}`];
+        
+        console.log(`Project ${i}:`, {
+          titleField: titleField ? titleField.value : 'NOT FOUND',
+          categoryField: categoryField ? categoryField.value : 'NOT FOUND',
+          typeField: typeField ? typeField.value : 'NOT FOUND',
+          imageField: imageField ? imageField.value : 'NOT FOUND',
+          altField: altField ? altField.value : 'NOT FOUND'
+        });
+        
+        return {
+          title: titleField ? titleField.value : p.title,
+          category: categoryField ? categoryField.value : p.category,
+          type: typeField ? typeField.value : p.type,
+          image: imageField ? imageField.value : p.image,
+          alt: altField ? altField.value : p.alt
+        };
       });
+      
+      console.log('Mapped projects:', mappedProjects);
+      
+      content.projects = mappedProjects.filter(project => {
+        const isValid = project.title && project.title.trim() !== '';
+        console.log('Project filter:', project, 'Valid:', isValid);
+        return isValid;
+      });
+      
+      console.log('Final filtered projects:', content.projects);
     }
     
     // Testimonials - filter out empty entries
