@@ -592,6 +592,9 @@ fetch(`${API_URL}/content.json`)
     setupRealTimeUpdates();
   });
 
+// Track if we're currently saving to avoid showing "updated from another session"
+let isSavingLocally = false;
+
 // Setup real-time updates with Socket.io
 function setupRealTimeUpdates() {
   // Load Socket.io script dynamically
@@ -602,8 +605,18 @@ function setupRealTimeUpdates() {
     
     // Listen for content updates
     socket.on('content-updated', (data) => {
-      console.log('Content updated, refreshing...');
-      // Refresh content
+      console.log('Content updated event received');
+      
+      // If we just saved locally, ignore this event (it's our own change)
+      if (isSavingLocally) {
+        console.log('Ignoring update - this was our own save');
+        // Don't reset the flag here - let the timeout in saveContent() handle it
+        // This prevents multiple socket events from bypassing the check
+        return;
+      }
+      
+      // This is from another session, refresh content
+      console.log('Content updated from another session, refreshing...');
       fetch(`${API_URL}/content.json`)
         .then(r => r.json())
         .then(newData => {
@@ -929,6 +942,9 @@ async function saveContent() {
       console.log('Filtered social media:', content.socialMedia);
     }
 
+    // Set flag to ignore the socket event from our own save
+    isSavingLocally = true;
+    
     // Send to backend
     const response = await fetch(`${API_URL}/api/update-content`, {
       method: 'POST',
@@ -942,13 +958,19 @@ async function saveContent() {
     const result = await response.json();
     
     if (result.success) {
+      // Reset flag after a short delay (socket event should arrive within 1 second)
+      setTimeout(() => {
+        isSavingLocally = false;
+      }, 2000);
       return true;
     } else {
+      isSavingLocally = false; // Reset flag on error
       console.error('Save failed:', result.error);
       if (result.error === 'Unauthorized') sessionStorage.removeItem('admin-token');
       return false;
     }
   } catch (error) {
+    isSavingLocally = false; // Reset flag on error
     console.error('Save error:', error);
     return false;
   }
