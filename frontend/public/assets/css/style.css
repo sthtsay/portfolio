@@ -1869,7 +1869,6 @@ textarea.form-input::-webkit-resizer {
 
   /* portfolio and blog grid */
 
-  .project-list,
   .blog-posts-list {
     grid-template-columns: repeat(3, 1fr);
     gap: 12px;
@@ -1978,14 +1977,6 @@ textarea.form-input::-webkit-resizer {
 
   .clients-item {
     min-width: calc(25% - 38px);
-  }
-
-  /**
-   * PORTFOLIO
-   */
-
-  .project-list {
-    grid-template-columns: repeat(3, 1fr);
   }
 
   /**
@@ -2139,14 +2130,14 @@ textarea.form-input::-webkit-resizer {
 
 @media (min-width: 450px) {
   .project-list {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, 1fr) !important;
     gap: 12px;
   }
 }
 
 @media (min-width: 768px) {
   .project-list {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, 1fr) !important;
     gap: 15px;
   }
 }
