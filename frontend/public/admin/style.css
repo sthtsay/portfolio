@@ -526,25 +526,35 @@ textarea.form-input {
 }
 
 .save-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
   background: var(--bg-gradient-yellow-1);
   background-size: 1000%;
-  color: var(--white-1);
-  box-shadow: var(--shadow-3);
+  color: var(--smoky-black);
+  box-shadow: var(--shadow-5);
   border: none;
   font-size: var(--fs-6);
-  font-weight: var(--fw-500);
-  padding: 12px 24px;
+  font-weight: var(--fw-600);
+  padding: 15px 30px;
   border-radius: 14px;
   transition: var(--transition-1);
-  display: block;
-  margin: 30px auto 0;
   cursor: pointer;
+  z-index: 99;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.save-btn ion-icon {
+  font-size: 20px;
 }
 
 .save-btn:hover,
 .save-btn:focus {
   background-position: bottom right;
   transform: translateY(-2px);
+  box-shadow: var(--shadow-3);
 }
 
 .add-btn {
@@ -794,6 +804,17 @@ textarea.form-input {
     border-radius: 20px 20px 0 0;
     z-index: 100;
     box-shadow: 0 -4px 20px hsla(0, 0%, 0%, 0.5);
+  }
+  
+  /* Adjust save button for mobile */
+  .save-btn {
+    bottom: 90px; /* Above the bottom navigation */
+    right: 15px;
+    left: 15px;
+    width: calc(100% - 30px);
+    justify-content: center;
+    padding: 15px 20px;
+    font-size: var(--fs-5);
   }
   
   /* Hide admin info on mobile */
@@ -2124,5 +2145,44 @@ tacts Management Styles */
   
   .navbar-link ion-icon {
     font-size: 16px;
+  }
+}
+
+
+/* Save button states */
+.save-btn.has-changes {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 hsla(45, 100%, 72%, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 10px hsla(45, 100%, 72%, 0);
+  }
+}
+
+.save-btn.saving {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.save-btn.saving ion-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Desktop save button positioning */
+@media (min-width: 769px) {
+  .save-btn {
+    bottom: 30px;
+    right: 30px;
+    left: auto;
+    width: auto;
   }
 }

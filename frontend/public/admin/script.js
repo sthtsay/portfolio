@@ -103,7 +103,9 @@ function scheduleAutoSave() {
 
 // Update save status indicator
 function updateSaveStatus(status) {
+  const saveBtn = document.getElementById('save-btn');
   let statusEl = document.getElementById('save-status');
+  
   if (!statusEl) {
     statusEl = document.createElement('div');
     statusEl.id = 'save-status';
@@ -123,6 +125,16 @@ function updateSaveStatus(status) {
   statusEl.style.color = s.color;
   statusEl.style.background = s.bg;
   statusEl.style.border = `1px solid ${s.color}`;
+  
+  // Update save button visual state
+  if (saveBtn) {
+    saveBtn.classList.remove('has-changes', 'saving');
+    if (status === 'unsaved') {
+      saveBtn.classList.add('has-changes');
+    } else if (status === 'saving') {
+      saveBtn.classList.add('saving');
+    }
+  }
   
   if (status === 'saved') {
     setTimeout(() => {
