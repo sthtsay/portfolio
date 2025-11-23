@@ -53,18 +53,7 @@ const checkAdminToken = (req, res, next) => {
   next();
 };
 
-// Helmet for security
-app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
-
-// Rate limiting for upload
-const uploadLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 5,
-  message: 'Too many upload requests from this IP, please try again later.'
-});
-app.use('/api/upload', uploadLimiter);
-
-// CORS + logging
+// CORS MUST come first - before any other middleware
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
@@ -76,6 +65,17 @@ app.use(cors({
 
 // Handle all OPTIONS requests
 app.options('*', cors());
+
+// Helmet for security (after CORS)
+app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
+
+// Rate limiting for upload (after CORS, skip OPTIONS)
+const uploadLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 50, // Increased limit
+  skip: (req) => req.method === 'OPTIONS', // Skip rate limiting for OPTIONS
+  message: 'Too many upload requests from this IP, please try again later.'
+});
 
 app.use(morgan('dev'));
 
@@ -329,16 +329,16 @@ app.delete('/api/contacts/:id', checkAdminToken, async (req, res) => {
   }
 });
 
-// Handle OPTIONS preflight for upload
+// Handle OPTIONS preflight for upload (no rate limiting, no auth)
 app.options('/api/upload', (req, res) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.sendStatus(200);
+  res.sendStatus(204);
 });
 
-// Upload image
-app.post('/api/upload', checkAdminToken, upload.single('image'), (req, res) => {
+// Upload image (rate limiting applied here)
+app.post('/api/upload', uploadLimiter, checkAdminToken, upload.single('image'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
   res.json({ filePath: `uploads/${req.file.filename}` });
 });
