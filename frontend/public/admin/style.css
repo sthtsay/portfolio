@@ -809,19 +809,21 @@ textarea.form-input {
     z-index: 100;
   }
   
-  /* Adjust save button for mobile - above navigation */
+  /* Adjust save button for mobile - centered above navigation */
   .save-btn {
     position: fixed;
-    bottom: 80px;
+    bottom: 85px;
     left: 50%;
+    right: auto;
     transform: translateX(-50%);
     width: calc(100% - 40px);
     max-width: 400px;
     justify-content: center;
-    padding: 15px 25px;
+    padding: 16px 25px;
     font-size: var(--fs-6);
     z-index: 99;
     box-shadow: var(--shadow-3);
+    margin: 0 auto;
   }
   
   /* Hide admin info on mobile */
@@ -918,9 +920,9 @@ textarea.form-input {
     background: transparent;
   }
   
-  /* Adjust main content */
+  /* Adjust main content - more padding to prevent cutoff */
   main {
-    padding-bottom: 150px;
+    padding-bottom: 180px;
   }
   
   .main-content {
@@ -931,6 +933,16 @@ textarea.form-input {
   
   .article {
     margin: 15px;
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+  }
+  
+  /* Ensure form elements aren't cut off */
+  .list-section {
+    padding-bottom: 20px;
+  }
+  
+  .list-item:last-child {
     margin-bottom: 30px;
   }
 }

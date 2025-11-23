@@ -741,9 +741,9 @@ function switchToTab(tabName) {
   const main = document.querySelector('main');
   if (main && window.innerWidth <= 768) {
     if (tabName === 'dashboard' || tabName === 'contacts') {
-      main.style.paddingBottom = '80px'; // Just nav height
+      main.style.paddingBottom = '100px'; // Just nav height
     } else {
-      main.style.paddingBottom = '150px'; // Nav + save button
+      main.style.paddingBottom = '180px'; // Nav + save button + extra space
     }
   }
 }
@@ -1394,7 +1394,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Adjust padding for dashboard
   const main = document.querySelector('main');
   if (main && window.innerWidth <= 768) {
-    main.style.paddingBottom = '80px';
+    main.style.paddingBottom = '100px';
   }
 });
 
@@ -2401,9 +2401,9 @@ window.addEventListener('resize', function() {
     if (window.innerWidth <= 768) {
       // Mobile: adjust padding based on save button visibility
       if (isSaveBtnVisible) {
-        main.style.paddingBottom = '150px';
+        main.style.paddingBottom = '180px';
       } else {
-        main.style.paddingBottom = '80px';
+        main.style.paddingBottom = '100px';
       }
     } else {
       // Desktop: reset padding
