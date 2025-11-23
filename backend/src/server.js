@@ -65,7 +65,12 @@ const uploadLimiter = rateLimit({
 app.use('/api/upload', uploadLimiter);
 
 // CORS + logging
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
 app.use(morgan('dev'));
 
 // Body parser
