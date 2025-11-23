@@ -540,10 +540,12 @@ textarea.form-input {
   border-radius: 14px;
   transition: var(--transition-1);
   cursor: pointer;
-  z-index: 99;
-  display: flex;
+  z-index: 999;
+  display: flex !important;
   align-items: center;
   gap: 8px;
+  opacity: 1;
+  visibility: visible;
 }
 
 .save-btn ion-icon {
@@ -808,13 +810,15 @@ textarea.form-input {
   
   /* Adjust save button for mobile */
   .save-btn {
-    bottom: 90px; /* Above the bottom navigation */
+    bottom: 95px; /* Above the bottom navigation */
     right: 15px;
     left: 15px;
     width: calc(100% - 30px);
     justify-content: center;
-    padding: 15px 20px;
+    padding: 16px 20px;
     font-size: var(--fs-5);
+    z-index: 999;
+    box-shadow: 0 -2px 20px hsla(45, 100%, 72%, 0.3);
   }
   
   /* Hide admin info on mobile */
@@ -830,42 +834,56 @@ textarea.form-input {
   
   .navbar-list {
     flex-direction: row;
-    gap: 8px;
+    gap: 10px;
     overflow-x: auto;
     overflow-y: hidden;
-    padding: 5px;
+    padding: 8px 10px;
     -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; /* Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: var(--orange-yellow-crayola) transparent;
+    scroll-snap-type: x mandatory;
   }
   
   .navbar-list::-webkit-scrollbar {
-    display: none; /* Chrome, Safari */
+    height: 3px;
+  }
+  
+  .navbar-list::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .navbar-list::-webkit-scrollbar-thumb {
+    background: var(--orange-yellow-crayola);
+    border-radius: 10px;
   }
   
   .navbar-item {
     flex-shrink: 0;
-    width: auto;
+    width: calc((100% - 30px) / 3.5); /* Show 3.5 tabs to indicate scrollability */
+    scroll-snap-align: start;
   }
   
   .navbar-link {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 10px 15px;
-    font-size: var(--fs-8);
-    gap: 5px;
-    min-width: 70px;
+    padding: 12px 8px;
+    font-size: 11px;
+    gap: 4px;
+    width: 100%;
     text-align: center;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   
   .navbar-link ion-icon {
-    font-size: 20px;
+    font-size: 22px;
   }
   
-  /* Adjust main content to account for bottom nav */
+  /* Adjust main content to account for bottom nav and save button */
   main {
-    padding-bottom: 80px;
+    padding-bottom: 160px; /* Space for nav + save button */
   }
   
   .main-content {
@@ -876,6 +894,7 @@ textarea.form-input {
   
   .article {
     margin: 15px;
+    margin-bottom: 30px;
   }
 }
 
@@ -2098,27 +2117,28 @@ tacts Management Styles */
   .navbar::after {
     content: '';
     position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 30px;
+    top: 10px;
+    bottom: 10px;
+    width: 20px;
     pointer-events: none;
-    z-index: 2;
+    z-index: 10;
   }
   
   .navbar::before {
     left: 0;
-    background: linear-gradient(to right, var(--eerie-black-2), transparent);
+    background: linear-gradient(to right, var(--eerie-black-2) 0%, transparent 100%);
   }
   
   .navbar::after {
     right: 0;
-    background: linear-gradient(to left, var(--eerie-black-2), transparent);
+    background: linear-gradient(to left, var(--eerie-black-2) 0%, transparent 100%);
   }
   
   /* Active tab indicator */
   .navbar-link.active {
     background: var(--bg-gradient-yellow-2);
     box-shadow: 0 4px 12px hsla(45, 100%, 72%, 0.3);
+    transform: scale(1.05);
   }
   
   /* Smooth scroll behavior */
@@ -2128,7 +2148,15 @@ tacts Management Styles */
   
   /* Touch-friendly tap targets */
   .navbar-link {
-    min-height: 60px;
+    min-height: 65px;
+  }
+  
+  /* Scroll hint - show partial next tab */
+  .navbar-list::after {
+    content: '';
+    display: block;
+    width: 10px;
+    flex-shrink: 0;
   }
 }
 
