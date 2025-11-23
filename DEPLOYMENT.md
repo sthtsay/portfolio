@@ -79,7 +79,28 @@ Value: [Your Site ID]
 
 ## 🎯 How It Works
 
-### Automatic Deployments
+### Option 1: Render Auto-Deploy (Recommended - Simpler)
+
+Render can automatically deploy when you push to GitHub:
+
+1. Go to your Render service dashboard
+2. Click **Settings**
+3. Under "Build & Deploy", enable **Auto-Deploy**
+4. Select branch: `main`
+5. Save changes
+
+Now Render will automatically deploy whenever you push to main!
+
+**Pros:**
+- ✅ No GitHub secrets needed
+- ✅ Simpler setup
+- ✅ Built-in by Render
+
+**Cons:**
+- ❌ Less control over deployment process
+- ❌ No custom CI checks before deploy
+
+### Option 2: GitHub Actions (Advanced)
 
 The CI/CD pipeline automatically deploys when you push changes:
 

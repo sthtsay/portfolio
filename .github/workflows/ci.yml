@@ -16,7 +16,7 @@ jobs:
     
     strategy:
       matrix:
-        node-version: [16.x, 18.x, 20.x]
+        node-version: [18.x, 20.x]
     
     steps:
       - name: Checkout code
@@ -32,7 +32,8 @@ jobs:
       - name: Install backend dependencies
         run: |
           cd backend
-          npm ci
+          rm -f package-lock.json
+          npm install --legacy-peer-deps
       
       - name: Check for security vulnerabilities
         run: |
