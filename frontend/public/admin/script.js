@@ -605,7 +605,7 @@ function renderDashboard() {
           // Trigger add project after ensuring content is rendered
           setTimeout(() => {
             if (!content.projects) content.projects = [];
-            content.projects.unshift({title:'',category:'',type:'',image:'',alt:''}); // Add to beginning
+            content.projects.unshift({title:'',category:'',type:'',image:'',alt:'',link:''}); // Add to beginning
             renderProjects();
             showNotification('Success', 'New project form added at top', 'success');
           }, 200);
@@ -724,13 +724,15 @@ async function saveContent() {
         const typeField = f[`project-type-${i}`];
         const imageField = f[`project-image-${i}`];
         const altField = f[`project-alt-${i}`];
+        const linkField = f[`project-link-${i}`];
         
         console.log(`Project ${i}:`, {
           titleField: titleField ? titleField.value : 'NOT FOUND',
           categoryField: categoryField ? categoryField.value : 'NOT FOUND',
           typeField: typeField ? typeField.value : 'NOT FOUND',
           imageField: imageField ? imageField.value : 'NOT FOUND',
-          altField: altField ? altField.value : 'NOT FOUND'
+          altField: altField ? altField.value : 'NOT FOUND',
+          linkField: linkField ? linkField.value : 'NOT FOUND'
         });
         
         return {
@@ -738,7 +740,8 @@ async function saveContent() {
           category: categoryField ? categoryField.value : p.category,
           type: typeField ? typeField.value : p.type,
           image: imageField ? imageField.value : p.image,
-          alt: altField ? altField.value : p.alt
+          alt: altField ? altField.value : p.alt,
+          link: linkField ? linkField.value : (p.link || '')
         };
       });
       
@@ -1097,7 +1100,7 @@ function renderProjects() {
     e.preventDefault();
     e.stopPropagation();
     console.log('Adding new project');
-    (content.projects = content.projects||[]).unshift({title:'',category:'',type:'',image:'',alt:''}); // Add to beginning
+    (content.projects = content.projects||[]).unshift({title:'',category:'',type:'',image:'',alt:'',link:''}); // Add to beginning
     renderProjects(); 
     showNotification('Success', 'New project form added at top', 'success');
   };
@@ -1134,6 +1137,7 @@ function renderProjects() {
     item.appendChild(typeGroup);
     item.appendChild(createImageUploadInput(`project-image-${i}`, project.image));
     item.appendChild(labeledInput('Alt text', createInput('text', project.alt, 'Project Image', `project-alt-${i}`)));
+    item.appendChild(labeledInput('Project Link', createInput('url', project.link || '', 'https://github.com/username/project', `project-link-${i}`)));
     const remove = document.createElement('button');
     remove.type = 'button';
     remove.className = 'remove-btn';

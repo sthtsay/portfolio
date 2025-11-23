@@ -317,7 +317,7 @@ document.addEventListener("DOMContentLoaded", function () {
           if (document.getElementById(pt.id)) {
             const html = filteredProjects.map(project => `
               <li class="project-item active" data-filter-item data-category="${pt.type}">
-                <a href="#">
+                <a href="${project.link || '#'}" target="${project.link ? '_blank' : '_self'}" rel="${project.link ? 'noopener noreferrer' : ''}">
                   <figure class="project-img">
                     <div class="project-item-icon-box">
                       <ion-icon name="eye-outline"></ion-icon>
