@@ -1052,10 +1052,14 @@ main {
 }
 
 .project-list {
-  display: grid;
+  display: grid !important;
   grid-template-columns: repeat(3, 1fr);
   gap: 15px;
   margin-top: 30px;
+}
+
+.project-list.real-projects {
+  display: grid !important;
 }
 
 .project-item {
@@ -1065,6 +1069,14 @@ main {
 .project-item.active {
   display: block;
   animation: scaleUp 0.25s ease forwards;
+}
+
+.project-list[style*="display: none"] {
+  display: none !important;
+}
+
+.project-list[style*="display: block"] {
+  display: grid !important;
 }
 
 @keyframes scaleUp {
