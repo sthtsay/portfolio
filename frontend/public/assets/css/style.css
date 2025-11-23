@@ -1071,6 +1071,10 @@ main {
   display: none;
 }
 
+#python-projects-list {
+  display: grid !important;
+}
+
 .project-item {
   display: none;
 }

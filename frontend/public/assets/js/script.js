@@ -282,58 +282,41 @@ document.addEventListener("DOMContentLoaded", function () {
           }
         }
 
-        // PROJECTS
-        const projectTypes = [
-          { type: 'python projects', id: 'python-projects-list' },
-          { type: 'website projects', id: 'website-projects-list' },
-          { type: 'java projects', id: 'java-projects-list' },
-          { type: 'mobile projects', id: 'mobile-projects-list' },
-          { type: 'desktop projects', id: 'desktop-projects-list' },
-          { type: 'api projects', id: 'api-projects-list' },
-          { type: 'database projects', id: 'database-projects-list' },
-          { type: 'machine learning projects', id: 'ml-projects-list' },
-          { type: 'data analysis projects', id: 'data-projects-list' },
-          { type: 'devops projects', id: 'devops-projects-list' },
-          { type: 'testing projects', id: 'testing-projects-list' },
-          { type: 'design projects', id: 'design-projects-list' },
-          { type: 'other projects', id: 'other-projects-list' }
-        ];
+        // PROJECTS - Render all projects into a single unified grid
+        console.log('🎯 Rendering all projects into unified grid');
         
-        console.log('🎯 Rendering projects by type:');
-        content.projects.forEach((project, index) => {
-          console.log(`Project ${index}:`, {
-            title: project.title,
-            type: `"${project.type}"`,
-            category: project.category,
-            image: project.image
+        // Get the main project container (we'll use the first one)
+        const mainProjectList = document.getElementById('python-projects-list');
+        
+        if (mainProjectList && content.projects) {
+          // Clear all project lists first
+          const allLists = document.querySelectorAll('.real-projects');
+          allLists.forEach(list => {
+            if (list.id !== 'python-projects-list') {
+              list.style.display = 'none';
+              list.innerHTML = '';
+            }
           });
-        });
-        
-        projectTypes.forEach(pt => {
-          const filteredProjects = content.projects.filter(p => p.type === pt.type);
-          console.log(`📂 ${pt.type}:`, filteredProjects.length, 'projects');
-          filteredProjects.forEach(p => console.log(`  - ${p.title}`));
           
-          if (document.getElementById(pt.id)) {
-            const html = filteredProjects.map(project => `
-              <li class="project-item active" data-filter-item data-category="${pt.type}">
-                <a href="${project.link || '#'}" target="${project.link ? '_blank' : '_self'}" rel="${project.link ? 'noopener noreferrer' : ''}">
-                  <figure class="project-img">
-                    <div class="project-item-icon-box">
-                      <ion-icon name="eye-outline"></ion-icon>
-                    </div>
-                    <img src="${getImageUrl(project.image)}" alt="${project.alt}" loading="lazy" />
-                  </figure>
-                  <h3 class="project-title">${project.title}</h3>
-                  <p class="project-category">${project.category}</p>
-                </a>
-              </li>
-            `).join('');
-            
-            document.getElementById(pt.id).innerHTML = html;
-            console.log(`📝 Rendered ${filteredProjects.length} projects to ${pt.id}`);
-          }
-        });
+          // Render ALL projects into the single main list
+          const html = content.projects.map(project => `
+            <li class="project-item active" data-filter-item data-category="${project.type}">
+              <a href="${project.link || '#'}" target="${project.link ? '_blank' : '_self'}" rel="${project.link ? 'noopener noreferrer' : ''}">
+                <figure class="project-img">
+                  <div class="project-item-icon-box">
+                    <ion-icon name="eye-outline"></ion-icon>
+                  </div>
+                  <img src="${getImageUrl(project.image)}" alt="${project.alt}" loading="lazy" />
+                </figure>
+                <h3 class="project-title">${project.title}</h3>
+                <p class="project-category">${project.category}</p>
+              </a>
+            </li>
+          `).join('');
+          
+          mainProjectList.innerHTML = html;
+          console.log(`📝 Rendered ${content.projects.length} projects to unified grid`);
+        }
 
         // --- FILTER LOGIC: re-initialize after rendering projects ---
         const filterItems = document.querySelectorAll("[data-filter-item]");
@@ -475,16 +458,14 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         // --- SKELETON LOADER: hide after real projects are rendered ---
-        // (no redeclaration, just use the variables)
         if (skeletonList) {
           skeletonList.style.display = 'none';
         }
         
-        // Show all project lists
-        if (realProjects.length > 0) {
-          realProjects.forEach(list => {
-            list.style.display = 'grid';
-          });
+        // Show only the main project list
+        const mainList = document.getElementById('python-projects-list');
+        if (mainList) {
+          mainList.style.display = 'grid';
         }
         
         // Hide filter buttons that have no projects
