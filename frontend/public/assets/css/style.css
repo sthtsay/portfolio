@@ -1437,9 +1437,12 @@ textarea.form-input::-webkit-resizer {
    * #PORTFOLIO, BLOG 
    */
 
-  .project-img,
   .blog-banner-box {
     height: auto;
+  }
+  
+  .project-img {
+    aspect-ratio: 1 / 1 !important;
   }
 }
 
