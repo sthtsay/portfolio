@@ -541,11 +541,9 @@ textarea.form-input {
   transition: var(--transition-1);
   cursor: pointer;
   z-index: 999;
-  display: flex !important;
+  display: flex;
   align-items: center;
   gap: 8px;
-  opacity: 1;
-  visibility: visible;
 }
 
 .save-btn ion-icon {
