@@ -793,7 +793,7 @@ textarea.form-input {
 }
 
 @media (max-width: 768px) {
-  /* Move navigation to bottom on mobile/tablet */
+  /* Portfolio-style bottom navigation */
   .admin-sidebar {
     position: fixed;
     bottom: 0;
@@ -803,22 +803,27 @@ textarea.form-input {
     height: auto;
     max-height: none;
     padding: 0;
-    border-radius: 20px 20px 0 0;
+    background: hsla(240, 1%, 17%, 0.75);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--jet);
+    border-radius: 12px 12px 0 0;
+    box-shadow: var(--shadow-2);
     z-index: 100;
-    box-shadow: 0 -4px 20px hsla(0, 0%, 0%, 0.5);
   }
   
-  /* Adjust save button for mobile */
+  /* Adjust save button for mobile - above navigation */
   .save-btn {
-    bottom: 95px; /* Above the bottom navigation */
-    right: 15px;
-    left: 15px;
-    width: calc(100% - 30px);
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 40px);
+    max-width: 400px;
     justify-content: center;
-    padding: 16px 20px;
-    font-size: var(--fs-5);
-    z-index: 999;
-    box-shadow: 0 -2px 20px hsla(45, 100%, 72%, 0.3);
+    padding: 15px 25px;
+    font-size: var(--fs-6);
+    z-index: 99;
+    box-shadow: var(--shadow-3);
   }
   
   /* Hide admin info on mobile */
@@ -827,63 +832,70 @@ textarea.form-input {
     display: none;
   }
   
-  /* Horizontal scrollable navigation */
+  /* Navigation container */
   .navbar {
-    padding: 10px;
+    padding: 0;
   }
   
+  /* Portfolio-style navbar list */
   .navbar-list {
-    flex-direction: row;
-    gap: 10px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding: 8px 10px;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
-    scrollbar-color: var(--orange-yellow-crayola) transparent;
-    scroll-snap-type: x mandatory;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    padding: 0 10px;
+    gap: 0;
+    overflow-x: visible;
+    overflow-y: visible;
   }
   
   .navbar-list::-webkit-scrollbar {
-    height: 3px;
-  }
-  
-  .navbar-list::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  
-  .navbar-list::-webkit-scrollbar-thumb {
-    background: var(--orange-yellow-crayola);
-    border-radius: 10px;
+    display: none;
   }
   
   .navbar-item {
     flex-shrink: 0;
-    width: calc((100% - 30px) / 3.5); /* Show 3.5 tabs to indicate scrollability */
-    scroll-snap-align: start;
+    width: auto;
   }
   
+  /* Portfolio-style navbar links */
   .navbar-link {
-    flex-direction: column;
+    color: var(--light-gray);
+    font-size: 12px;
+    padding: 20px 10px;
+    transition: color var(--transition-1);
+    flex-direction: row;
     justify-content: center;
     align-items: center;
-    padding: 12px 8px;
-    font-size: 11px;
-    gap: 4px;
-    width: 100%;
+    gap: 0;
     text-align: center;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    background: transparent;
+    border-radius: 0;
+  }
+  
+  .navbar-link::before {
+    display: none;
   }
   
   .navbar-link ion-icon {
-    font-size: 22px;
+    display: none; /* Hide icons on mobile like portfolio */
   }
   
-  /* Adjust main content to account for bottom nav and save button */
+  .navbar-link:hover,
+  .navbar-link:focus {
+    color: var(--light-gray-70);
+    background: transparent;
+  }
+  
+  .navbar-link.active {
+    color: var(--orange-yellow-crayola);
+    background: transparent;
+  }
+  
+  /* Adjust main content */
   main {
-    padding-bottom: 160px; /* Space for nav + save button */
+    padding-bottom: 150px;
   }
   
   .main-content {
@@ -2106,59 +2118,7 @@ tacts Management Styles */
 }
 
 
-/* Mobile Navigation Enhancements */
-@media (max-width: 768px) {
-  /* Add subtle gradient fade at edges to indicate scrollability */
-  .navbar {
-    position: relative;
-  }
-  
-  .navbar::before,
-  .navbar::after {
-    content: '';
-    position: absolute;
-    top: 10px;
-    bottom: 10px;
-    width: 20px;
-    pointer-events: none;
-    z-index: 10;
-  }
-  
-  .navbar::before {
-    left: 0;
-    background: linear-gradient(to right, var(--eerie-black-2) 0%, transparent 100%);
-  }
-  
-  .navbar::after {
-    right: 0;
-    background: linear-gradient(to left, var(--eerie-black-2) 0%, transparent 100%);
-  }
-  
-  /* Active tab indicator */
-  .navbar-link.active {
-    background: var(--bg-gradient-yellow-2);
-    box-shadow: 0 4px 12px hsla(45, 100%, 72%, 0.3);
-    transform: scale(1.05);
-  }
-  
-  /* Smooth scroll behavior */
-  .navbar-list {
-    scroll-behavior: smooth;
-  }
-  
-  /* Touch-friendly tap targets */
-  .navbar-link {
-    min-height: 65px;
-  }
-  
-  /* Scroll hint - show partial next tab */
-  .navbar-list::after {
-    content: '';
-    display: block;
-    width: 10px;
-    flex-shrink: 0;
-  }
-}
+
 
 /* Tablet specific adjustments */
 @media (min-width: 769px) and (max-width: 1024px) {
