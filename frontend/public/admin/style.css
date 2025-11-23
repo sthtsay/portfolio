@@ -781,19 +781,80 @@ textarea.form-input {
 }
 
 @media (max-width: 768px) {
+  /* Move navigation to bottom on mobile/tablet */
+  .admin-sidebar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: auto;
+    max-height: none;
+    padding: 0;
+    border-radius: 20px 20px 0 0;
+    z-index: 100;
+    box-shadow: 0 -4px 20px hsla(0, 0%, 0%, 0.5);
+  }
+  
+  /* Hide admin info on mobile */
+  .admin-info,
+  .separator {
+    display: none;
+  }
+  
+  /* Horizontal scrollable navigation */
+  .navbar {
+    padding: 10px;
+  }
+  
   .navbar-list {
-    flex-direction: column;
-    gap: 5px;
+    flex-direction: row;
+    gap: 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 5px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+  }
+  
+  .navbar-list::-webkit-scrollbar {
+    display: none; /* Chrome, Safari */
   }
   
   .navbar-item {
-    width: 100%;
+    flex-shrink: 0;
+    width: auto;
   }
   
   .navbar-link {
-    justify-content: flex-start;
-    padding: 12px 20px;
-    font-size: var(--fs-6);
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 15px;
+    font-size: var(--fs-8);
+    gap: 5px;
+    min-width: 70px;
+    text-align: center;
+    white-space: nowrap;
+  }
+  
+  .navbar-link ion-icon {
+    font-size: 20px;
+  }
+  
+  /* Adjust main content to account for bottom nav */
+  main {
+    padding-bottom: 80px;
+  }
+  
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+    padding-bottom: 20px;
+  }
+  
+  .article {
+    margin: 15px;
   }
 }
 
@@ -2002,4 +2063,66 @@ tacts Management Styles */
 
 .auth-btn ion-icon {
   font-size: 18px;
+}
+
+
+/* Mobile Navigation Enhancements */
+@media (max-width: 768px) {
+  /* Add subtle gradient fade at edges to indicate scrollability */
+  .navbar {
+    position: relative;
+  }
+  
+  .navbar::before,
+  .navbar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 30px;
+    pointer-events: none;
+    z-index: 2;
+  }
+  
+  .navbar::before {
+    left: 0;
+    background: linear-gradient(to right, var(--eerie-black-2), transparent);
+  }
+  
+  .navbar::after {
+    right: 0;
+    background: linear-gradient(to left, var(--eerie-black-2), transparent);
+  }
+  
+  /* Active tab indicator */
+  .navbar-link.active {
+    background: var(--bg-gradient-yellow-2);
+    box-shadow: 0 4px 12px hsla(45, 100%, 72%, 0.3);
+  }
+  
+  /* Smooth scroll behavior */
+  .navbar-list {
+    scroll-behavior: smooth;
+  }
+  
+  /* Touch-friendly tap targets */
+  .navbar-link {
+    min-height: 60px;
+  }
+}
+
+/* Tablet specific adjustments */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .admin-sidebar {
+    width: 200px;
+  }
+  
+  .navbar-link {
+    padding: 10px 15px;
+    font-size: var(--fs-7);
+  }
+  
+  .navbar-link ion-icon {
+    font-size: 16px;
+  }
 }

@@ -50,6 +50,11 @@ document.querySelectorAll('[data-nav-link]').forEach(link => {
     
     switchToTab(pageName);
     
+    // Scroll active tab into view on mobile
+    if (window.innerWidth <= 768) {
+      this.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+    
     // Scroll to top
     window.scrollTo(0, 0);
   });
