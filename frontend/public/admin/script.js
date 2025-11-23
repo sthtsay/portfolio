@@ -2388,8 +2388,7 @@ function renderSettings() {
   tab.appendChild(socialSection);
 }
 
-// Han
-dle window resize for responsive save button positioning
+// Handle window resize for responsive save button positioning
 window.addEventListener('resize', function() {
   const saveBtn = document.getElementById('save-btn');
   const main = document.querySelector('main');
