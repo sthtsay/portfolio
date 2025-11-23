@@ -118,7 +118,8 @@ const contentSchema = Joi.object({
       category: Joi.string().allow(''),
       type: Joi.string().allow(''),
       image: Joi.string().allow(''),
-      alt: Joi.string().allow('')
+      alt: Joi.string().allow(''),
+      link: Joi.string().allow('')
     })
   ).default([]),
 
