@@ -345,30 +345,17 @@ document.addEventListener("DOMContentLoaded", function () {
           console.log('🔍 Filtering by:', normalizedValue);
           
           if (normalizedValue === "all") {
-            // Show all project lists and all items
-            projectLists.forEach(list => {
-              list.style.display = 'grid';
-            });
+            // Show all project items
             filterItems.forEach(item => {
               item.classList.add("active");
             });
             console.log('📋 Showing all projects');
           } else {
-            // Hide all lists first
-            projectLists.forEach(list => {
-              list.style.display = 'none';
-            });
-            
-            // Show only matching items and their lists
+            // Show only matching items
             filterItems.forEach(item => {
               const itemCategory = (item.dataset.category || '').trim().toLowerCase();
               if (normalizedValue === itemCategory) {
                 item.classList.add("active");
-                // Show the parent list
-                const parentList = item.closest('.real-projects');
-                if (parentList) {
-                  parentList.style.display = 'grid';
-                }
               } else {
                 item.classList.remove("active");
               }
@@ -489,11 +476,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // --- SKELETON LOADER: hide after real projects are rendered ---
         // (no redeclaration, just use the variables)
-        if (skeletonList && realProjects.length > 0) {
+        if (skeletonList) {
           skeletonList.style.display = 'none';
-          realProjects.forEach(list => {
-            list.style.display = 'grid'; // Set to grid to maintain layout
-          });
         }
         
         // Hide filter buttons that have no projects
