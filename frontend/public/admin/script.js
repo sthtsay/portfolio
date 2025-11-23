@@ -469,17 +469,26 @@ function createImageUploadInput(name, currentImagePath) {
   };
   container.appendChild(preview);
 
-  const fileInputId = `file-input-${name}`;
+  // Create hidden input first so it's available in the upload handler
+  const hiddenInput = document.createElement('input');
+  hiddenInput.type = 'hidden';
+  hiddenInput.name = name;
+  hiddenInput.value = currentImagePath || '';
+  container.appendChild(hiddenInput);
+
+  const fileInputId = `file-input-${name}-${Date.now()}`; // Add timestamp for uniqueness
   const fileInput = document.createElement('input');
   fileInput.type = 'file';
   fileInput.accept = 'image/*';
   fileInput.id = fileInputId;
   fileInput.style.display = 'none'; // Hide the default input
+  fileInput.name = `${name}-file`; // Add name attribute
 
   const fileInputLabel = document.createElement('label');
   fileInputLabel.htmlFor = fileInputId;
   fileInputLabel.className = 'file-input-label';
   fileInputLabel.textContent = 'Choose File';
+  fileInputLabel.style.cursor = 'pointer';
   container.appendChild(fileInputLabel);
 
   fileInput.onchange = async (e) => {
@@ -563,12 +572,6 @@ function createImageUploadInput(name, currentImagePath) {
     }
   };
   container.appendChild(fileInput);
-
-  const hiddenInput = document.createElement('input');
-  hiddenInput.type = 'hidden';
-  hiddenInput.name = name;
-  hiddenInput.value = currentImagePath;
-  container.appendChild(hiddenInput);
 
   return container;
 }
