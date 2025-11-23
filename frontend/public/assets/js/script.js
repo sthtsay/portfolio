@@ -480,6 +480,13 @@ document.addEventListener("DOMContentLoaded", function () {
           skeletonList.style.display = 'none';
         }
         
+        // Show all project lists
+        if (realProjects.length > 0) {
+          realProjects.forEach(list => {
+            list.style.display = 'grid';
+          });
+        }
+        
         // Hide filter buttons that have no projects
         updateFilterButtonVisibility();
         

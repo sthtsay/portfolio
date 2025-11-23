@@ -1051,19 +1051,20 @@ main {
   --eerie-black-2: hsl(240, 2%, 20%);
 }
 
-.projects {
+.project-list {
   display: grid;
   grid-template-columns: 1fr;
   gap: 15px;
-}
-
-.project-list {
-  display: contents;
   margin-top: 30px;
 }
 
 .project-list.real-projects {
-  display: contents;
+  display: grid;
+  margin-top: 0;
+}
+
+.project-list.skeleton-list {
+  display: grid;
 }
 
 .project-item {
@@ -2127,14 +2128,14 @@ textarea.form-input::-webkit-resizer {
 
 
 @media (min-width: 450px) {
-  .projects {
+  .project-list {
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
   }
 }
 
 @media (min-width: 768px) {
-  .projects {
+  .project-list {
     grid-template-columns: repeat(3, 1fr);
     gap: 15px;
   }
