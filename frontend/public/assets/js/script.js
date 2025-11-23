@@ -381,6 +381,14 @@ document.addEventListener("DOMContentLoaded", function () {
         const select = document.querySelector("[data-select]");
         const selectItems = document.querySelectorAll("[data-select-item]");
         const selectValue = document.querySelector("[data-select-value]");
+        
+        // Setup dropdown toggle for mobile
+        if (select) {
+          select.onclick = function() {
+            elementToggleFunc(this);
+          };
+        }
+        
         let lastClickedBtn = filterBtn[0];
         filterBtn.forEach(btn => {
           btn.onclick = function () {
