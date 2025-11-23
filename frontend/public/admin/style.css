@@ -835,18 +835,44 @@ textarea.form-input {
   /* Navigation container */
   .navbar {
     padding: 0;
+    position: relative;
   }
   
-  /* Portfolio-style navbar list */
+  /* Gradient fade indicators for scrollability */
+  .navbar::before,
+  .navbar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 30px;
+    pointer-events: none;
+    z-index: 2;
+  }
+  
+  .navbar::before {
+    left: 0;
+    background: linear-gradient(to right, hsla(240, 1%, 17%, 0.95), transparent);
+  }
+  
+  .navbar::after {
+    right: 0;
+    background: linear-gradient(to left, hsla(240, 1%, 17%, 0.95), transparent);
+  }
+  
+  /* Horizontal scrollable navbar list */
   .navbar-list {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
     align-items: center;
     padding: 0 10px;
     gap: 0;
-    overflow-x: visible;
-    overflow-y: visible;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
   }
   
   .navbar-list::-webkit-scrollbar {
@@ -861,8 +887,8 @@ textarea.form-input {
   /* Portfolio-style navbar links */
   .navbar-link {
     color: var(--light-gray);
-    font-size: 12px;
-    padding: 20px 10px;
+    font-size: 13px;
+    padding: 20px 12px;
     transition: color var(--transition-1);
     flex-direction: row;
     justify-content: center;
@@ -872,6 +898,7 @@ textarea.form-input {
     white-space: nowrap;
     background: transparent;
     border-radius: 0;
+    min-width: fit-content;
   }
   
   .navbar-link::before {
@@ -2172,5 +2199,31 @@ tacts Management Styles */
     right: 30px;
     left: auto;
     width: auto;
+  }
+}
+
+
+/* Mobile scroll indicator */
+@media (max-width: 768px) {
+  /* Add a subtle bottom border that shows scroll progress */
+  .navbar-list {
+    position: relative;
+  }
+  
+  /* Scroll hint - add padding to show there's more content */
+  .navbar-list::after {
+    content: '';
+    display: block;
+    width: 20px;
+    flex-shrink: 0;
+  }
+  
+  /* Smooth scroll snap for better UX */
+  .navbar-item {
+    scroll-snap-align: start;
+  }
+  
+  .navbar-list {
+    scroll-snap-type: x proximity;
   }
 }
