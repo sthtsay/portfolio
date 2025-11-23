@@ -67,10 +67,16 @@ app.use('/api/upload', uploadLimiter);
 // CORS + logging
 app.use(cors({
   origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  credentials: true,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 }));
+
+// Handle all OPTIONS requests
+app.options('*', cors());
+
 app.use(morgan('dev'));
 
 // Body parser
@@ -321,6 +327,14 @@ app.delete('/api/contacts/:id', checkAdminToken, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete contact' });
   }
+});
+
+// Handle OPTIONS preflight for upload
+app.options('/api/upload', (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.sendStatus(200);
 });
 
 // Upload image
