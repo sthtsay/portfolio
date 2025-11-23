@@ -16,6 +16,42 @@ function getImageUrl(path) {
   return `./assets/images/${path}`;
 }
 
+// Sanitize HTML to prevent XSS attacks
+function sanitizeHTML(str) {
+  if (!str) return '';
+  const temp = document.createElement('div');
+  temp.textContent = str;
+  return temp.innerHTML;
+}
+
+// Show notification message
+function showNotification(message, type = 'error') {
+  const notification = document.createElement('div');
+  notification.className = `${type}-message`;
+  notification.textContent = message;
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    notification.style.animation = 'slideIn 0.3s ease reverse';
+    setTimeout(() => notification.remove(), 300);
+  }, 3000);
+}
+
+// Show loading spinner
+function showLoading() {
+  const spinner = document.createElement('div');
+  spinner.className = 'loading-spinner';
+  spinner.id = 'global-spinner';
+  spinner.innerHTML = '<div class="spinner"></div>';
+  document.body.appendChild(spinner);
+}
+
+// Hide loading spinner
+function hideLoading() {
+  const spinner = document.getElementById('global-spinner');
+  if (spinner) spinner.remove();
+}
+
 
 document.addEventListener("DOMContentLoaded", function () {
   // Utility function to toggle element's active class
@@ -288,7 +324,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // Get the main project container (we'll use the first one)
         const mainProjectList = document.getElementById('python-projects-list');
         
-        if (mainProjectList && content.projects) {
+        if (mainProjectList) {
           // Clear all project lists first
           const allLists = document.querySelectorAll('.real-projects');
           allLists.forEach(list => {
@@ -298,24 +334,35 @@ document.addEventListener("DOMContentLoaded", function () {
             }
           });
           
-          // Render ALL projects into the single main list
-          const html = content.projects.map(project => `
-            <li class="project-item active" data-filter-item data-category="${project.type}">
-              <a href="${project.link || '#'}" target="${project.link ? '_blank' : '_self'}" rel="${project.link ? 'noopener noreferrer' : ''}">
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-                  <img src="${getImageUrl(project.image)}" alt="${project.alt}" loading="lazy" />
-                </figure>
-                <h3 class="project-title">${project.title}</h3>
-                <p class="project-category">${project.category}</p>
-              </a>
-            </li>
-          `).join('');
-          
-          mainProjectList.innerHTML = html;
-          console.log(`📝 Rendered ${content.projects.length} projects to unified grid`);
+          if (content.projects && content.projects.length > 0) {
+            // Render ALL projects into the single main list
+            const html = content.projects.map(project => `
+              <li class="project-item active" data-filter-item data-category="${sanitizeHTML(project.type)}">
+                <a href="${sanitizeHTML(project.link || '#')}" target="${project.link ? '_blank' : '_self'}" rel="${project.link ? 'noopener noreferrer' : ''}">
+                  <figure class="project-img">
+                    <div class="project-item-icon-box">
+                      <ion-icon name="eye-outline"></ion-icon>
+                    </div>
+                    <img src="${getImageUrl(project.image)}" alt="${sanitizeHTML(project.alt)}" loading="lazy" />
+                  </figure>
+                  <h3 class="project-title">${sanitizeHTML(project.title)}</h3>
+                  <p class="project-category">${sanitizeHTML(project.category)}</p>
+                </a>
+              </li>
+            `).join('');
+            
+            mainProjectList.innerHTML = html;
+            console.log(`📝 Rendered ${content.projects.length} projects to unified grid`);
+          } else {
+            // Show empty state
+            mainProjectList.innerHTML = `
+              <div class="empty-state">
+                <ion-icon name="folder-open-outline"></ion-icon>
+                <h3>No Projects Yet</h3>
+                <p>Projects will appear here once added through the admin panel.</p>
+              </div>
+            `;
+          }
         }
 
         // --- FILTER LOGIC: re-initialize after rendering projects ---
@@ -477,11 +524,28 @@ document.addEventListener("DOMContentLoaded", function () {
       })
       .catch((error) => {
         console.error('❌ Failed to load content:', error);
+        hideLoading();
+        
+        // Show user-friendly error message
+        showNotification('Failed to load portfolio content. Please refresh the page.', 'error');
+        
         if (loadingDiv) {
-          loadingDiv.textContent = 'Failed to load content: ' + error.message;
+          loadingDiv.textContent = 'Failed to load content. Please refresh the page.';
           loadingDiv.style.color = '#f44336';
         }
         if (main) main.prepend(loadingDiv);
+        
+        // Show empty states for all sections
+        const mainProjectList = document.getElementById('python-projects-list');
+        if (mainProjectList) {
+          mainProjectList.innerHTML = `
+            <div class="empty-state">
+              <ion-icon name="cloud-offline-outline"></ion-icon>
+              <h3>Connection Error</h3>
+              <p>Unable to load projects. Please check your internet connection and refresh.</p>
+            </div>
+          `;
+        }
       });
   }
   

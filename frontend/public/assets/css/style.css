@@ -2169,3 +2169,78 @@ textarea.form-input::-webkit-resizer {
     margin-left: 5px;
   }
 }
+
+/* Loading Spinner */
+.loading-spinner {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid var(--jet);
+  border-top: 4px solid var(--orange-yellow-crayola);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Error Message */
+.error-message {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: var(--bittersweet-shimmer);
+  color: var(--white-1);
+  padding: 15px 20px;
+  border-radius: 8px;
+  box-shadow: var(--shadow-3);
+  z-index: 10000;
+  animation: slideIn 0.3s ease;
+  max-width: 400px;
+}
+
+.success-message {
+  background: #4CAF50;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--light-gray);
+}
+
+.empty-state ion-icon {
+  font-size: 80px;
+  color: var(--jet);
+  margin-bottom: 20px;
+}
+
+.empty-state h3 {
+  color: var(--white-2);
+  margin-bottom: 10px;
+}
+
+.empty-state p {
+  font-size: var(--fs-6);
+}
