@@ -1071,13 +1071,7 @@ main {
   animation: scaleUp 0.25s ease forwards;
 }
 
-.project-list[style*="display: none"] {
-  display: none !important;
-}
 
-.project-list[style*="display: block"] {
-  display: grid !important;
-}
 
 @keyframes scaleUp {
   0% {

@@ -347,7 +347,7 @@ document.addEventListener("DOMContentLoaded", function () {
           if (normalizedValue === "all") {
             // Show all project lists and all items
             projectLists.forEach(list => {
-              list.style.display = 'block';
+              list.style.display = 'grid';
             });
             filterItems.forEach(item => {
               item.classList.add("active");
@@ -367,7 +367,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 // Show the parent list
                 const parentList = item.closest('.real-projects');
                 if (parentList) {
-                  parentList.style.display = 'block';
+                  parentList.style.display = 'grid';
                 }
               } else {
                 item.classList.remove("active");
@@ -492,7 +492,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (skeletonList && realProjects.length > 0) {
           skeletonList.style.display = 'none';
           realProjects.forEach(list => {
-            list.style.display = 'block'; // Explicitly set to block instead of empty string
+            list.style.display = 'grid'; // Set to grid to maintain layout
           });
         }
         
