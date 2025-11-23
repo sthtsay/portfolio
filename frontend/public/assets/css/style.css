@@ -1083,10 +1083,10 @@ main {
 .project-img {
   position: relative;
   width: 100%;
-  height: 100px;
-  border-radius: 12px;
+  height: 70px;
+  border-radius: 10px;
   overflow: hidden;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .project-img::before {
@@ -2134,9 +2134,9 @@ textarea.form-input::-webkit-resizer {
   }
   
   .project-img {
-    height: 80px;
+    height: 60px;
     border-radius: 8px;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
   
   .project-title {

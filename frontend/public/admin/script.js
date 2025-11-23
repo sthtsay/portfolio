@@ -399,11 +399,14 @@ function createImageUploadInput(name, currentImagePath) {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Check for admin token first (without prompting)
+    // Check for admin token and prompt if needed
     if (!adminToken) {
-      showNotification('Error', 'Please enter admin token first by clicking Save Changes', 'error');
-      fileInputLabel.textContent = 'Choose File';
-      return;
+      const token = await requestAdminToken();
+      if (!token) {
+        showNotification('Error', 'Admin token is required to upload images', 'error');
+        fileInputLabel.textContent = 'Choose File';
+        return;
+      }
     }
 
     // Show selected file name
