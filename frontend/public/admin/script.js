@@ -733,7 +733,17 @@ function switchToTab(tabName) {
     if (tabName === 'dashboard' || tabName === 'contacts') {
       saveBtn.style.display = 'none';
     } else {
-      saveBtn.style.display = 'block';
+      saveBtn.style.display = 'flex'; // Use flex to maintain layout
+    }
+  }
+  
+  // Adjust bottom padding based on save button visibility
+  const main = document.querySelector('main');
+  if (main && window.innerWidth <= 768) {
+    if (tabName === 'dashboard' || tabName === 'contacts') {
+      main.style.paddingBottom = '80px'; // Just nav height
+    } else {
+      main.style.paddingBottom = '150px'; // Nav + save button
     }
   }
 }
@@ -1373,6 +1383,18 @@ document.addEventListener('DOMContentLoaded', function() {
         closeTestimonialModal();
       }
     };
+  }
+  
+  // Hide save button on dashboard by default
+  const saveBtn = document.getElementById('save-btn');
+  if (saveBtn) {
+    saveBtn.style.display = 'none';
+  }
+  
+  // Adjust padding for dashboard
+  const main = document.querySelector('main');
+  if (main && window.innerWidth <= 768) {
+    main.style.paddingBottom = '80px';
   }
 });
 
@@ -2365,3 +2387,28 @@ function renderSettings() {
   socialSection.appendChild(socialList);
   tab.appendChild(socialSection);
 }
+
+// Han
+dle window resize for responsive save button positioning
+window.addEventListener('resize', function() {
+  const saveBtn = document.getElementById('save-btn');
+  const main = document.querySelector('main');
+  const activeTab = document.querySelector('[data-nav-link].active');
+  
+  if (saveBtn && main && activeTab) {
+    const tabName = activeTab.dataset.tab;
+    const isSaveBtnVisible = saveBtn.style.display !== 'none';
+    
+    if (window.innerWidth <= 768) {
+      // Mobile: adjust padding based on save button visibility
+      if (isSaveBtnVisible) {
+        main.style.paddingBottom = '150px';
+      } else {
+        main.style.paddingBottom = '80px';
+      }
+    } else {
+      // Desktop: reset padding
+      main.style.paddingBottom = '';
+    }
+  }
+});
