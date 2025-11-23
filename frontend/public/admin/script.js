@@ -1,6 +1,11 @@
 const API_URL = 'https://portfolio-505u.onrender.com';
 let adminToken = sessionStorage.getItem('admin-token');
 
+// Auto-save configuration
+let autoSaveTimer = null;
+let hasUnsavedChanges = false;
+const AUTO_SAVE_DELAY = 3000; // 3 seconds after last change
+
 // --- Token Modal Logic ---
 const tokenModal = document.getElementById('token-modal');
 const tokenInput = document.getElementById('token-input');
@@ -58,7 +63,70 @@ function createInput(type, value, placeholder, name, required=false) {
   input.placeholder = placeholder || '';
   if (name) input.name = name;
   if (required) input.required = true;
+  
+  // Add auto-save listener
+  input.addEventListener('input', () => {
+    hasUnsavedChanges = true;
+    scheduleAutoSave();
+  });
+  
   return input;
+}
+
+// Schedule auto-save
+function scheduleAutoSave() {
+  if (autoSaveTimer) {
+    clearTimeout(autoSaveTimer);
+  }
+  
+  // Show unsaved indicator
+  updateSaveStatus('unsaved');
+  
+  autoSaveTimer = setTimeout(async () => {
+    if (hasUnsavedChanges) {
+      updateSaveStatus('saving');
+      const success = await saveContent();
+      if (success) {
+        hasUnsavedChanges = false;
+        updateSaveStatus('saved');
+      } else {
+        updateSaveStatus('error');
+      }
+    }
+  }, AUTO_SAVE_DELAY);
+}
+
+// Update save status indicator
+function updateSaveStatus(status) {
+  let statusEl = document.getElementById('save-status');
+  if (!statusEl) {
+    statusEl = document.createElement('div');
+    statusEl.id = 'save-status';
+    statusEl.style.cssText = 'position: fixed; top: 20px; right: 20px; padding: 10px 15px; border-radius: 8px; font-size: 14px; z-index: 10000; transition: all 0.3s;';
+    document.body.appendChild(statusEl);
+  }
+  
+  const statuses = {
+    unsaved: { text: '● Unsaved changes', color: '#ff9800', bg: 'rgba(255, 152, 0, 0.1)' },
+    saving: { text: '⟳ Saving...', color: '#2196F3', bg: 'rgba(33, 150, 243, 0.1)' },
+    saved: { text: '✓ All changes saved', color: '#4CAF50', bg: 'rgba(76, 175, 80, 0.1)' },
+    error: { text: '✗ Save failed', color: '#f44336', bg: 'rgba(244, 67, 54, 0.1)' }
+  };
+  
+  const s = statuses[status];
+  statusEl.textContent = s.text;
+  statusEl.style.color = s.color;
+  statusEl.style.background = s.bg;
+  statusEl.style.border = `1px solid ${s.color}`;
+  
+  if (status === 'saved') {
+    setTimeout(() => {
+      statusEl.style.opacity = '0';
+      setTimeout(() => statusEl.remove(), 300);
+    }, 2000);
+  } else {
+    statusEl.style.opacity = '1';
+  }
 }
 
 // Helper: create date range input
