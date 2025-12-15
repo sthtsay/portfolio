@@ -11,482 +11,206 @@ const morgan = require('morgan');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const nodemailer = require('nodemailer');
-const { exec } = require('child_process');
+
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: '*', methods: ['GET', 'POST'], credentials: true }
+  cors: { origin: '*', methods: ['GET', 'POST'] }
 });
 
 const PORT = process.env.PORT || 3000;
-const CONTENT_PATH = path.join(__dirname, '..', 'content.json');
-const CONTACTS_PATH = path.join(__dirname, '..', 'contacts.json');
-const ADMIN_TOKEN = process.env.ADMIN_TOKEN;
 
+/* =======================
+   Paths (Docker-safe)
+======================= */
+const DATA_DIR = path.join(__dirname, '..');
+const CONTENT_PATH = path.join(DATA_DIR, 'content.json');
+const CONTACTS_PATH = path.join(DATA_DIR, 'contacts.json');
+const UPLOADS_DIR = path.join(DATA_DIR, 'uploads');
+
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN;
 if (!ADMIN_TOKEN) {
-  console.error('FATAL ERROR: ADMIN_TOKEN is not defined. Please create a .env file with ADMIN_TOKEN.');
+  console.error('ADMIN_TOKEN missing');
   process.exit(1);
 }
 
-// Email configuration
-const createEmailTransporter = () => {
-  if (process.env.EMAIL_SERVICE && process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-    return nodemailer.createTransporter({
-      service: process.env.EMAIL_SERVICE, // 'gmail', 'outlook', etc.
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
-  }
-  return null;
-};
+/* =======================
+   Email
+======================= */
+const emailTransporter =
+  process.env.EMAIL_USER && process.env.EMAIL_PASS
+    ? nodemailer.createTransport({
+        service: process.env.EMAIL_SERVICE,
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS
+        }
+      })
+    : null;
 
-const emailTransporter = createEmailTransporter();
+/* =======================
+   Middleware
+======================= */
+app.use(cors());
+app.use(helmet({ crossOriginResourcePolicy: false }));
+app.use(morgan('dev'));
+app.use(express.json({ limit: '2mb' }));
+app.use('/uploads', express.static(UPLOADS_DIR));
 
-// Middleware to check for admin token
 const checkAdminToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1]; // Bearer <token>
-  if (token == null) return res.status(401).json({ error: 'No token provided' });
-  if (token !== ADMIN_TOKEN) return res.status(403).json({ error: 'Unauthorized' });
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'No token' });
+  if (token !== ADMIN_TOKEN) return res.status(403).json({ error: 'Forbidden' });
   next();
 };
 
-// CORS MUST come first - before any other middleware
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
-  preflightContinue: false,
-  optionsSuccessStatus: 204
-}));
-
-// Handle all OPTIONS requests
-app.options('*', cors());
-
-// Helmet for security (after CORS)
-app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
-
-// Rate limiting for upload (after CORS, skip OPTIONS)
+/* =======================
+   Rate Limit
+======================= */
 const uploadLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 50, // Increased limit
-  skip: (req) => req.method === 'OPTIONS', // Skip rate limiting for OPTIONS
-  message: 'Too many upload requests from this IP, please try again later.'
+  max: 50
 });
 
-app.use(morgan('dev'));
-
-// Body parser
-app.use(express.json({ limit: '2mb' }));
-app.use(express.static(path.join(__dirname, '..', '..', 'frontend', 'public')));
-app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
-
-// Multer storage
+/* =======================
+   Multer
+======================= */
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'uploads/'),
-  filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
+  destination: (_, __, cb) => cb(null, UPLOADS_DIR),
+  filename: (_, file, cb) =>
+    cb(null, `${Date.now()}-${file.originalname}`)
 });
 
 const upload = multer({
   storage,
   limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
-    if (!allowedTypes.includes(file.mimetype)) {
-      return cb(new Error('Invalid file type'), false);
-    }
-    cb(null, true);
+  fileFilter: (_, file, cb) => {
+    const allowed = ['image/jpeg', 'image/png', 'image/gif'];
+    allowed.includes(file.mimetype)
+      ? cb(null, true)
+      : cb(new Error('Invalid file type'));
   }
 });
 
-// ✅ Joi schema
-const contentSchema = Joi.object({
-  about: Joi.object({
-    name: Joi.string().required(),
-    title: Joi.string().required(),
-    description: Joi.array().items(Joi.string()).required()
-  }).required(),
-
-  services: Joi.array().items(
-    Joi.object({
-      icon: Joi.string().allow(''),
-      title: Joi.string().required(),
-      text: Joi.string().required()
-    })
-  ).default([]),
-
-  projects: Joi.array().items(
-    Joi.object({
-      title: Joi.string().required(),
-      category: Joi.string().allow(''),
-      type: Joi.string().allow(''),
-      image: Joi.string().allow(''),
-      alt: Joi.string().allow(''),
-      link: Joi.string().allow('')
-    })
-  ).default([]),
-
-  testimonials: Joi.array().items(
-    Joi.object({
-      avatar: Joi.string().allow(''),
-      name: Joi.string().required(),
-      text: Joi.string().required()
-    })
-  ).default([]),
-
-  certificates: Joi.array().items(
-    Joi.object({
-      logo: Joi.string().allow(''),
-      alt: Joi.string().allow('')
-    })
-  ).default([]),
-
-  education: Joi.array().items(
-    Joi.object({
-      school: Joi.string().required(),
-      years: Joi.string().allow(''),
-      text: Joi.string().allow('')
-    })
-  ).default([]),
-
-  experience: Joi.array().items(
-    Joi.object({
-      title: Joi.string().required(),
-      company: Joi.string().allow(''),
-      years: Joi.string().allow(''),
-      text: Joi.string().allow('')
-    })
-  ).default([]),
-
-  skills: Joi.array().items(
-    Joi.object({
-      name: Joi.string().required(),
-      value: Joi.number().min(0).max(100).required()
-    })
-  ).default([]),
-
-  siteSettings: Joi.object({
-    title: Joi.string().required(),
-    description: Joi.string().required(),
-    keywords: Joi.string().allow(''),
-    author: Joi.string().required(),
-    siteUrl: Joi.string().uri().allow(''),
-    avatar: Joi.string().allow(''),
-    favicon: Joi.string().allow('')
-  }).default({}),
-
-  contactInfo: Joi.object({
-    email: Joi.string().email().required(),
-    phone: Joi.string().allow(''),
-    location: Joi.string().allow('')
-  }).default({}),
-
-  socialMedia: Joi.array().items(
-    Joi.object({
-      platform: Joi.string().required(),
-      url: Joi.string().uri().required(),
-      icon: Joi.string().required()
-    })
-  ).default([])
-});
-
-// Contact form validation schema
+/* =======================
+   Schemas
+======================= */
 const contactSchema = Joi.object({
-  fullname: Joi.string().min(2).max(100).required(),
+  fullname: Joi.string().min(2).required(),
   email: Joi.string().email().required(),
-  message: Joi.string().min(10).max(2000).required()
+  message: Joi.string().min(10).required()
 });
 
-// --- Helper Functions ---
-
-// Load contacts from file
-const loadContacts = async () => {
+/* =======================
+   Helpers
+======================= */
+const loadJson = async (file, fallback = []) => {
   try {
-    const data = await fs.readFile(CONTACTS_PATH, 'utf8');
-    return JSON.parse(data);
-  } catch (error) {
-    return []; // Return empty array if file doesn't exist
+    return JSON.parse(await fs.readFile(file, 'utf8'));
+  } catch {
+    return fallback;
   }
 };
 
-// Save contacts to file
-const saveContacts = async (contacts) => {
-  await fs.writeFile(CONTACTS_PATH, JSON.stringify(contacts, null, 2));
+const saveJson = async (file, data) => {
+  await fs.writeFile(file, JSON.stringify(data, null, 2));
 };
 
-// Send email notification
-const sendEmailNotification = async (contactData) => {
-  if (!emailTransporter) return false;
-  
-  try {
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: process.env.NOTIFICATION_EMAIL || process.env.EMAIL_USER,
-      subject: `New Contact Form Submission from ${contactData.fullname}`,
-      html: `
-        <h2>New Contact Form Submission</h2>
-        <p><strong>Name:</strong> ${contactData.fullname}</p>
-        <p><strong>Email:</strong> ${contactData.email}</p>
-        <p><strong>Message:</strong></p>
-        <p>${contactData.message.replace(/\n/g, '<br>')}</p>
-        <p><strong>Submitted:</strong> ${new Date().toLocaleString()}</p>
-      `
-    };
-    
-    await emailTransporter.sendMail(mailOptions);
-    return true;
-  } catch (error) {
-    console.error('Email sending failed:', error);
-    return false;
-  }
-};
+/* =======================
+   Routes
+======================= */
 
-// --- Routes ---
-
-// Contact form submission
+// Contact
 app.post('/api/contact', async (req, res) => {
   const { error } = contactSchema.validate(req.body);
-  if (error) {
-    return res.status(400).json({ error: error.details[0].message });
-  }
+  if (error) return res.status(400).json({ error: error.message });
 
-  const contactData = {
+  const contact = {
     id: Date.now().toString(),
-    fullname: req.body.fullname.trim(),
-    email: req.body.email.trim().toLowerCase(),
-    message: req.body.message.trim(),
+    ...req.body,
     timestamp: new Date().toISOString(),
     read: false
   };
 
-  try {
-    // Save to contacts file
-    const contacts = await loadContacts();
-    contacts.unshift(contactData); // Add to beginning (most recent first)
-    await saveContacts(contacts);
+  const contacts = await loadJson(CONTACTS_PATH);
+  contacts.unshift(contact);
+  await saveJson(CONTACTS_PATH, contacts);
 
-    // Send email notification (optional)
-    const emailSent = await sendEmailNotification(contactData);
-
-    // Emit socket event for real-time updates
-    io.emit('new-contact', {
-      id: contactData.id,
-      name: contactData.fullname,
-      email: contactData.email,
-      timestamp: contactData.timestamp
-    });
-
-    res.json({ 
-      success: true, 
-      message: 'Thank you for your message! I\'ll get back to you soon.',
-      emailSent 
-    });
-  } catch (err) {
-    console.error('Contact form error:', err);
-    res.status(500).json({ error: 'Failed to submit contact form. Please try again.' });
+  if (emailTransporter) {
+    emailTransporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: process.env.NOTIFICATION_EMAIL || process.env.EMAIL_USER,
+      subject: `New Contact: ${contact.fullname}`,
+      html: `<p>${contact.message}</p>`
+    }).catch(console.error);
   }
+
+  io.emit('new-contact', contact);
+  res.json({ success: true });
 });
 
-// Get contacts (admin only)
-app.get('/api/contacts', checkAdminToken, async (req, res) => {
-  try {
-    const contacts = await loadContacts();
-    res.json(contacts);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to load contacts' });
-  }
+// Admin contacts
+app.get('/api/contacts', checkAdminToken, async (_, res) => {
+  res.json(await loadJson(CONTACTS_PATH));
 });
 
-// Mark contact as read (admin only)
 app.patch('/api/contacts/:id/read', checkAdminToken, async (req, res) => {
-  try {
-    const contacts = await loadContacts();
-    const contact = contacts.find(c => c.id === req.params.id);
-    if (!contact) {
-      return res.status(404).json({ error: 'Contact not found' });
-    }
-    
-    contact.read = true;
-    await saveContacts(contacts);
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to update contact' });
-  }
+  const contacts = await loadJson(CONTACTS_PATH);
+  const c = contacts.find(x => x.id === req.params.id);
+  if (!c) return res.sendStatus(404);
+  c.read = true;
+  await saveJson(CONTACTS_PATH, contacts);
+  res.json({ success: true });
 });
 
-// Delete contact (admin only)
 app.delete('/api/contacts/:id', checkAdminToken, async (req, res) => {
-  try {
-    const contacts = await loadContacts();
-    const filteredContacts = contacts.filter(c => c.id !== req.params.id);
-    await saveContacts(filteredContacts);
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to delete contact' });
+  const contacts = await loadJson(CONTACTS_PATH);
+  await saveJson(
+    CONTACTS_PATH,
+    contacts.filter(c => c.id !== req.params.id)
+  );
+  res.json({ success: true });
+});
+
+// Upload
+app.post(
+  '/api/upload',
+  uploadLimiter,
+  checkAdminToken,
+  upload.single('image'),
+  (req, res) => {
+    res.json({ filePath: `/uploads/${req.file.filename}` });
   }
-});
+);
 
-// Handle OPTIONS preflight for upload (no rate limiting, no auth)
-app.options('/api/upload', (req, res) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.sendStatus(204);
-});
+// Content
+app.get('/content.json', (_, res) => res.sendFile(CONTENT_PATH));
 
-// Upload image (rate limiting applied here)
-app.post('/api/upload', uploadLimiter, checkAdminToken, upload.single('image'), (req, res) => {
-  if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
-  res.json({ filePath: `uploads/${req.file.filename}` });
-});
-
-// Serve content.json
-app.get('/content.json', (req, res) => {
-  res.sendFile(CONTENT_PATH);
-});
-
-// Update content.json
 app.post('/api/update-content', checkAdminToken, async (req, res) => {
-  const { error } = contentSchema.validate(req.body);
-  if (error) {
-    return res.status(400).json({ error: error.details[0].message });
-  }
-
-  const content = req.body;
-
-  // Helper: extract END year and month safely for better sorting
-  const getEndDate = (years) => {
-    if (!years || years.trim() === '') return { year: new Date().getFullYear() + 1, month: 12 }; // Treat missing as "Present"
-    
-    const parts = years.split('—').map(s => s.trim());
-    if (parts.length < 2) {
-      const year = parseInt(parts[0]) || new Date().getFullYear() + 1;
-      return { year, month: 12 };
-    }
-    
-    const end = parts[1];
-    if (/present/i.test(end)) return { year: new Date().getFullYear() + 1, month: 12 };
-    
-    // Handle "Month YYYY" format (e.g., "December 2023")
-    const monthYearMatch = end.match(/^(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})$/);
-    if (monthYearMatch) {
-      const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-      const month = monthNames.indexOf(monthYearMatch[1]) + 1;
-      const year = parseInt(monthYearMatch[2]);
-      return { year, month };
-    }
-    
-    // Handle "YYYY" format
-    const year = parseInt(end) || new Date().getFullYear() + 1;
-    return { year, month: 12 };
-  };
-
-  // Helper: compare two dates for sorting (most recent first)
-  const compareDates = (dateA, dateB) => {
-    if (dateA.year !== dateB.year) {
-      return dateB.year - dateA.year; // Sort by year descending
-    }
-    return dateB.month - dateA.month; // If same year, sort by month descending
-  };
-
-  // --- Sort education by END date (desc) ---
-  if (content.education) {
-    content.education.sort((a, b) => {
-      const dateA = getEndDate(a.years);
-      const dateB = getEndDate(b.years);
-      return compareDates(dateA, dateB);
-    });
-  }
-
-  // --- Sort experience by END date (desc) ---
-  if (content.experience) {
-    content.experience.sort((a, b) => {
-      const dateA = getEndDate(a.years);
-      const dateB = getEndDate(b.years);
-      return compareDates(dateA, dateB);
-    });
-  }
-
-  try {
-    await fs.writeFile(CONTENT_PATH, JSON.stringify(content, null, 2));
-    
-    // Small delay to ensure file is fully written
-    setTimeout(() => {
-      console.log('Emitting content-updated event to all clients');
-      io.emit('content-updated', { 
-        message: 'Content has been updated. Please refresh.',
-        timestamp: new Date().toISOString()
-      });
-    }, 100);
-    
-    res.json({ success: true });
-  } catch (err) {
-    console.error('Failed to write content file:', err);
-    res.status(500).json({ error: 'Failed to write file' });
-  }
+  await saveJson(CONTENT_PATH, req.body);
+  io.emit('content-updated', { timestamp: Date.now() });
+  res.json({ success: true });
 });
 
-// WebSocket
-io.on('connection', (socket) => {
-  console.log('A user connected');
-  socket.on('disconnect', () => console.log('User disconnected'));
-  socket.on('reconnect', () => console.log('A user reconnected'));
-});
+/* =======================
+   WebSocket
+======================= */
+io.on('connection', () => console.log('Socket connected'));
 
-// Multer error handler
-app.use((err, req, res, next) => {
-  if (err instanceof multer.MulterError) {
-    return res.status(400).json({ error: err.message });
-  }
-  next(err);
-});
-
-// General error handler
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Something went wrong. Please try again later.' });
-});
-
-// Restart & shutdown
-const restartServer = () => {
-  console.log('Preparing to restart server...');
-  setTimeout(() => {
-    console.log('Restarting server...');
-    exec('node ' + __filename, (err, stdout, stderr) => {
-      if (err) {
-        console.error(`Error restarting server: ${stderr}`);
-        return;
-      }
-      console.log('Server restarted successfully');
-    });
-    process.exit();
-  }, 1000);
-};
-
+/* =======================
+   Shutdown (Docker-safe)
+======================= */
 const shutdown = () => {
-  console.log('Gracefully shutting down...');
-  setTimeout(() => {
-    console.log('Server closed');
-    process.exit(0);
-  }, 1000);
+  console.log('Shutting down...');
+  server.close(() => process.exit(0));
 };
 
-process.on('SIGINT', () => {
-  console.log('Received SIGINT (Ctrl+C), shutting down...');
-  shutdown();
-  restartServer();
-});
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);
 
-process.on('SIGTERM', () => {
-  console.log('Received SIGTERM, shutting down...');
-  shutdown();
-  restartServer();
-});
-
-// Start server
-server.listen(PORT, () => {
-  console.log(`Portfolio server running at http://localhost:${PORT}`);
-});
+/* =======================
+   Start
+======================= */
+server.listen(PORT, () =>
+  console.log(`Server running on port ${PORT}`)
+);
