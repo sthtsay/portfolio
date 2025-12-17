@@ -1,5 +1,161 @@
-const API_URL = 'https://portfolio-505u.onrender.com';
-let adminToken = sessionStorage.getItem('admin-token');
+const API_URL = 'http://localhost:3000';
+let adminToken = localStorage.getItem('admin-jwt-token');
+
+// JWT Token Management
+class TokenManager {
+  static authInProgress = false;
+  static lastTokenCheck = 0;
+  static tokenCheckCache = null;
+  static TOKEN_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
+  
+  static async exchangeForJWT(adminPassword) {
+    try {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adminToken: adminPassword })
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        localStorage.setItem('admin-jwt-token', data.token);
+        localStorage.setItem('token-expires', Date.now() + data.expiresIn);
+        adminToken = data.token;
+        return data.token;
+      } else {
+        throw new Error(data.message || data.error || 'Authentication failed');
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
+  
+  static async checkTokenValidity() {
+    if (!adminToken) return false;
+    
+    // Use cached result if recent
+    const now = Date.now();
+    if (this.tokenCheckCache !== null && (now - this.lastTokenCheck) < this.TOKEN_CHECK_INTERVAL) {
+      return this.tokenCheckCache;
+    }
+    
+    try {
+      const response = await fetch(`${API_URL}/api/auth/token-info`, {
+        headers: { 'Authorization': `Bearer ${adminToken}` }
+      });
+      
+      const data = await response.json();
+      
+      const isValid = data.valid;
+      
+      // Cache the result
+      this.tokenCheckCache = isValid;
+      this.lastTokenCheck = now;
+      
+      if (!isValid) {
+        this.clearToken();
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      this.clearToken();
+      this.tokenCheckCache = false;
+      this.lastTokenCheck = now;
+      return false;
+    }
+  }
+  
+  static clearToken() {
+    localStorage.removeItem('admin-jwt-token');
+    localStorage.removeItem('token-expires');
+    adminToken = null;
+    // Clear cache when token is cleared
+    this.tokenCheckCache = null;
+    this.lastTokenCheck = 0;
+  }
+  
+  static async ensureValidToken() {
+    
+    // Prevent multiple simultaneous authentication attempts
+    if (this.authInProgress) {
+      // Wait for ongoing authentication to complete
+      while (this.authInProgress) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      // Return the token if authentication succeeded
+      return adminToken;
+    }
+    
+    // First check if we have a token and if it's valid
+    if (adminToken) {
+      const isValid = await this.checkTokenValidity();
+      if (isValid) {
+        return adminToken;
+      }
+      // Clear the invalid token
+      this.clearToken();
+    }
+    
+    // Set authentication in progress flag
+    this.authInProgress = true;
+    
+    try {
+      // If no valid token, request new authentication
+      const password = await requestAdminToken();
+      if (!password) {
+        return null;
+      }
+      
+      // Prevent sending JWT tokens to the auth endpoint
+      if (password.startsWith('eyJ')) {
+        showNotification('Error', 'Authentication error - please try again', 'error');
+        return null;
+      }
+      
+      // Proceed with authentication
+      const token = await this.exchangeForJWT(password);
+      return token;
+    } catch (error) {
+      showNotification('Error', error.message || 'Authentication failed', 'error');
+      return null;
+    } finally {
+      // Clear the authentication in progress flag
+      this.authInProgress = false;
+    }
+  }
+}
+
+// Token status UI updater
+function updateTokenStatus() {
+  const statusEl = document.getElementById('token-status');
+  const indicator = statusEl?.querySelector('.status-indicator');
+  const text = statusEl?.querySelector('.status-text');
+  
+  if (!statusEl) return;
+  
+  TokenManager.checkTokenValidity().then(isValid => {
+    if (isValid) {
+      indicator.className = 'status-indicator authenticated';
+      text.textContent = 'Authenticated';
+    } else {
+      indicator.className = 'status-indicator expired';
+      text.textContent = 'Not authenticated';
+    }
+  }).catch(() => {
+    indicator.className = 'status-indicator expired';
+    text.textContent = 'Auth error';
+  });
+}
+
+// Check token validity on page load and update UI
+TokenManager.checkTokenValidity().then(() => {
+  updateTokenStatus();
+});
+
+// Update token status every 10 minutes (reduced frequency)
+setInterval(updateTokenStatus, 10 * 60 * 1000);
 
 // Auto-save configuration
 let autoSaveTimer = null;
@@ -16,26 +172,86 @@ let resolveTokenPromise = null;
   ``
 function requestAdminToken() {
   return new Promise((resolve) => {
+    // Clear any existing value multiple times to ensure it's really cleared
+    tokenInput.value = '';
+    tokenInput.defaultValue = '';
+    
+    // Clear any browser auto-fill
+    setTimeout(() => {
+      tokenInput.value = '';
+    }, 10);
+    
     tokenModal.style.display = 'flex';
-    tokenInput.focus();
+    
+    // Force clear the input after modal is shown
+    setTimeout(() => {
+      tokenInput.value = '';
+      tokenInput.focus();
+    }, 50);
+    
     resolveTokenPromise = resolve;
   });
 }
 
-tokenSubmitBtn.onclick = () => {
-  const token = tokenInput.value;
-  if (token) {
-    adminToken = token;
-    sessionStorage.setItem('admin-token', token);
-    tokenModal.style.display = 'none';
-    if (resolveTokenPromise) resolveTokenPromise(token);
+tokenSubmitBtn.onclick = async () => {
+  const password = tokenInput.value;
+  
+  // Validate that we're not sending a JWT token
+  if (password && password.startsWith('eyJ')) {
+    showNotification('Error', 'Please enter your admin token, not the JWT token', 'error');
+    tokenInput.value = '';
+    return;
   }
-  tokenInput.value = '';
+  
+  if (password) {
+    try {
+      // Show loading state
+      tokenSubmitBtn.textContent = 'Authenticating...';
+      tokenSubmitBtn.disabled = true;
+      
+      // Store the password before exchanging for JWT
+      const originalPassword = password;
+      
+      // Exchange password for JWT
+      const jwtToken = await TokenManager.exchangeForJWT(password);
+      
+      // Ensure global adminToken is updated
+      adminToken = jwtToken;
+      
+      tokenModal.style.display = 'none';
+      
+      // Clear authentication in progress flag immediately
+      TokenManager.authInProgress = false;
+      
+      if (resolveTokenPromise) {
+        resolveTokenPromise(originalPassword); // Return the original admin password
+        resolveTokenPromise = null; // Prevent multiple resolutions
+      }
+      
+      // Update token status immediately
+      updateTokenStatus();
+      
+      showNotification('Success', 'Authentication successful! Token expires in 24 hours.', 'success');
+    } catch (error) {
+      showNotification('Error', error.message || 'Authentication failed', 'error');
+      if (resolveTokenPromise) {
+        resolveTokenPromise(null);
+        resolveTokenPromise = null; // Prevent multiple resolutions
+      }
+    } finally {
+      tokenSubmitBtn.textContent = 'Submit';
+      tokenSubmitBtn.disabled = false;
+      tokenInput.value = ''; // Clear input
+    }
+  }
 };
 
 tokenCancelBtn.onclick = () => {
   tokenModal.style.display = 'none';
-  if (resolveTokenPromise) resolveTokenPromise(null);
+  if (resolveTokenPromise) {
+    resolveTokenPromise(null);
+    resolveTokenPromise = null; // Prevent multiple resolutions
+  }
   tokenInput.value = '';
 };
 
@@ -46,7 +262,7 @@ document.querySelectorAll('[data-nav-link]').forEach(link => {
     e.stopPropagation();
     
     const pageName = this.dataset.tab;
-    console.log('Navigation clicked:', pageName);
+
     
     switchToTab(pageName);
     
@@ -84,11 +300,16 @@ function scheduleAutoSave() {
     clearTimeout(autoSaveTimer);
   }
   
+  // Don't auto-save if authentication is in progress
+  if (TokenManager.authInProgress) {
+    return;
+  }
+  
   // Show unsaved indicator
   updateSaveStatus('unsaved');
   
   autoSaveTimer = setTimeout(async () => {
-    if (hasUnsavedChanges) {
+    if (hasUnsavedChanges && !TokenManager.authInProgress) {
       updateSaveStatus('saving');
       const success = await saveContent();
       if (success) {
@@ -496,13 +717,11 @@ function createImageUploadInput(name, currentImagePath) {
     if (!file) return;
 
     // Check for admin token and prompt if needed
-    if (!adminToken) {
-      const token = await requestAdminToken();
-      if (!token) {
-        showNotification('Error', 'Admin token is required to upload images', 'error');
-        fileInputLabel.textContent = 'Choose File';
-        return;
-      }
+    const validToken = await TokenManager.ensureValidToken();
+    if (!validToken) {
+      showNotification('Error', 'Authentication is required to upload images', 'error');
+      fileInputLabel.textContent = 'Choose File';
+      return;
     }
 
     // Show selected file name
@@ -559,15 +778,13 @@ function createImageUploadInput(name, currentImagePath) {
         throw new Error('No file path returned from server');
       }
     } catch (err) {
-      console.error('Upload error:', err);
       showNotification('Error', err.message || 'An error occurred during upload.', 'error');
       fileInputLabel.textContent = 'Choose File';
       fileInputLabel.style.opacity = '1';
       
-      if (err.message.includes('Unauthorized')) {
-        sessionStorage.removeItem('admin-token');
-        adminToken = null;
-        showNotification('Error', 'Session expired. Please enter admin token again.', 'error');
+      if (err.message.includes('Unauthorized') || err.message.includes('Token expired')) {
+        TokenManager.clearToken();
+        showNotification('Error', 'Session expired. Please authenticate again.', 'error');
       }
     }
   };
@@ -605,18 +822,14 @@ function setupRealTimeUpdates() {
     
     // Listen for content updates
     socket.on('content-updated', (data) => {
-      console.log('Content updated event received');
-      
       // If we just saved locally, ignore this event (it's our own change)
       if (isSavingLocally) {
-        console.log('Ignoring update - this was our own save');
         // Don't reset the flag here - let the timeout in saveContent() handle it
         // This prevents multiple socket events from bypassing the check
         return;
       }
       
       // This is from another session, refresh content
-      console.log('Content updated from another session, refreshing...');
       fetch(`${API_URL}/content.json`)
         .then(r => r.json())
         .then(newData => {
@@ -628,7 +841,6 @@ function setupRealTimeUpdates() {
     
     // Listen for new contact messages
     socket.on('new-contact', (data) => {
-      console.log('New contact message received');
       // If we're on the contacts tab, refresh it
       const activeTab = document.querySelector('.navbar-link.active');
       if (activeTab && activeTab.dataset.tab === 'contacts') {
@@ -644,10 +856,10 @@ function setupRealTimeUpdates() {
       showNotification('New Message!', `New contact message from ${data.name || 'visitor'}`, 'info');
     });
     
-    console.log('Real-time updates connected');
+
   };
   script.onerror = function() {
-    console.log('Socket.io not available, real-time updates disabled');
+    // Socket.io not available, real-time updates disabled
   };
   document.head.appendChild(script);
 }
@@ -675,7 +887,7 @@ function renderDashboard() {
   
   // Update contacts count (unread messages)
   if (adminToken) {
-    fetch(`${API_URL}/api/contacts`, {
+    fetch(`${API_URL}/api/contact`, {
       headers: { 'Authorization': `Bearer ${adminToken}` }
     })
     .then(r => r.json())
@@ -698,7 +910,7 @@ function renderDashboard() {
       e.stopPropagation();
       
       const action = e.currentTarget.dataset.action;
-      console.log('Quick action clicked:', action);
+
       
       switch(action) {
         case 'add-project':
@@ -794,13 +1006,19 @@ function isNewItem(item, requiredFields) {
 }
 
 // Auto-save content function
+let saveInProgress = false;
 async function saveContent() {
-  if (!adminToken) {
-    const token = await requestAdminToken();
-    if (!token) {
-      customAlert('Authentication Required', 'Admin token is required to save changes.', 'warning');
-      return false;
-    }
+  // Prevent multiple simultaneous saves
+  if (saveInProgress) {
+    return false;
+  }
+  
+  saveInProgress = true;
+  const validToken = await TokenManager.ensureValidToken();
+  if (!validToken) {
+    saveInProgress = false;
+    customAlert('Authentication Required', 'Authentication is required to save changes.', 'warning');
+    return false;
   }
 
   try {
@@ -827,8 +1045,6 @@ async function saveContent() {
     
     // Projects - filter out empty entries
     if (content.projects) {
-      console.log('Original projects:', content.projects);
-      
       const mappedProjects = content.projects.map((p,i) => {
         const titleField = f[`project-title-${i}`];
         const categoryField = f[`project-category-${i}`];
@@ -836,15 +1052,6 @@ async function saveContent() {
         const imageField = f[`project-image-${i}`];
         const altField = f[`project-alt-${i}`];
         const linkField = f[`project-link-${i}`];
-        
-        console.log(`Project ${i}:`, {
-          titleField: titleField ? titleField.value : 'NOT FOUND',
-          categoryField: categoryField ? categoryField.value : 'NOT FOUND',
-          typeField: typeField ? typeField.value : 'NOT FOUND',
-          imageField: imageField ? imageField.value : 'NOT FOUND',
-          altField: altField ? altField.value : 'NOT FOUND',
-          linkField: linkField ? linkField.value : 'NOT FOUND'
-        });
         
         return {
           title: titleField ? titleField.value : p.title,
@@ -856,15 +1063,9 @@ async function saveContent() {
         };
       });
       
-      console.log('Mapped projects:', mappedProjects);
-      
       content.projects = mappedProjects.filter(project => {
-        const isValid = project.title && project.title.trim() !== '';
-        console.log('Project filter:', project, 'Valid:', isValid);
-        return isValid;
+        return project.title && project.title.trim() !== '';
       });
-      
-      console.log('Final filtered projects:', content.projects);
     }
     
     // Testimonials - filter out empty entries
@@ -933,20 +1134,17 @@ async function saveContent() {
         icon: f[`social-icon-${i}`] ? f[`social-icon-${i}`].value : s.icon
       })).filter(social => {
         // Only include entries where all fields are non-empty strings
-        const isValid = social.platform && social.platform.trim() !== '' && 
-                       social.url && social.url.trim() !== '' && 
-                       social.icon && social.icon.trim() !== '';
-        console.log('Social media entry:', social, 'Valid:', isValid);
-        return isValid;
+        return social.platform && social.platform.trim() !== '' && 
+               social.url && social.url.trim() !== '' && 
+               social.icon && social.icon.trim() !== '';
       });
-      console.log('Filtered social media:', content.socialMedia);
     }
 
     // Set flag to ignore the socket event from our own save
     isSavingLocally = true;
     
     // Send to backend
-    const response = await fetch(`${API_URL}/api/update-content`, {
+    const response = await fetch(`${API_URL}/api/content/update`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -962,16 +1160,20 @@ async function saveContent() {
       setTimeout(() => {
         isSavingLocally = false;
       }, 2000);
+      saveInProgress = false;
       return true;
     } else {
       isSavingLocally = false; // Reset flag on error
-      console.error('Save failed:', result.error);
-      if (result.error === 'Unauthorized') sessionStorage.removeItem('admin-token');
+
+      if (result.error === 'Unauthorized' || result.error.includes('Token expired')) {
+        TokenManager.clearToken();
+      }
+      saveInProgress = false;
       return false;
     }
   } catch (error) {
     isSavingLocally = false; // Reset flag on error
-    console.error('Save error:', error);
+    saveInProgress = false;
     return false;
   }
 }
@@ -1156,7 +1358,7 @@ function renderServices() {
   add.onclick = (e) => { 
     e.preventDefault();
     e.stopPropagation();
-    console.log('Adding new service');
+
     (content.services = content.services||[]).unshift({icon:'',title:'',text:''}); // Add to beginning
     renderServices(); 
     showNotification('Success', 'New service form added at top', 'success');
@@ -1219,7 +1421,7 @@ function renderProjects() {
   add.onclick = (e) => { 
     e.preventDefault();
     e.stopPropagation();
-    console.log('Adding new project');
+
     (content.projects = content.projects||[]).unshift({title:'',category:'',type:'',image:'',alt:'',link:''}); // Add to beginning
     renderProjects(); 
     showNotification('Success', 'New project form added at top', 'success');
@@ -1304,7 +1506,7 @@ function renderTestimonials() {
   add.onclick = (e) => { 
     e.preventDefault();
     e.stopPropagation();
-    console.log('Adding new testimonial');
+
     (content.testimonials = content.testimonials||[]).unshift({avatar:'',name:'',text:''}); // Add to beginning
     renderTestimonials(); 
     showNotification('Success', 'New testimonial form added at top', 'success');
@@ -1365,7 +1567,7 @@ function showTestimonialModal(testimonial) {
   const name = document.getElementById('modal-testimonial-name');
   const text = document.getElementById('modal-testimonial-text');
   
-  console.log('Showing testimonial modal for:', testimonial); // Debug log
+
   
   // Set content
   if (testimonial.avatar) {
@@ -1443,7 +1645,7 @@ function renderCertificates() {
   add.onclick = (e) => { 
     e.preventDefault();
     e.stopPropagation();
-    console.log('Adding new certificate');
+
     (content.certificates = content.certificates||[]).unshift({logo:'',alt:''}); // Add to beginning
     renderCertificates(); 
     showNotification('Success', 'New certificate form added at top', 'success');
@@ -1506,7 +1708,7 @@ function renderEducation() {
   add.onclick = (e) => { 
     e.preventDefault();
     e.stopPropagation();
-    console.log('Adding new education');
+
     (content.education = content.education||[]).unshift({school:'',years:'',text:''}); // Add to beginning
     renderEducation(); 
     showNotification('Success', 'New education form added at top', 'success');
@@ -1578,7 +1780,7 @@ function renderExperience() {
   add.onclick = (e) => { 
     e.preventDefault();
     e.stopPropagation();
-    console.log('Adding new experience');
+
     (content.experience = content.experience||[]).unshift({title:'',company:'',years:'',text:''}); // Add to beginning
     renderExperience(); 
     showNotification('Success', 'New experience form added at top', 'success');
@@ -1651,7 +1853,7 @@ function renderSkills() {
   add.onclick = (e) => { 
     e.preventDefault();
     e.stopPropagation();
-    console.log('Adding new skill');
+
     (content.skills = content.skills||[]).unshift({name:'',value:0}); // Add to beginning
     renderSkills(); 
     showNotification('Success', 'New skill form added at top', 'success');
@@ -1733,6 +1935,7 @@ async function renderContacts() {
   const tab = document.getElementById('tab-contacts');
   tab.innerHTML = '<div class="loading">Loading contacts...</div>';
   
+  // Quick check - if no token at all, show auth required immediately
   if (!adminToken) {
     tab.innerHTML = `
       <div class="auth-required">
@@ -1750,10 +1953,18 @@ async function renderContacts() {
     return;
   }
   
-  fetch(`${API_URL}/api/contacts`, {
+  // Try to fetch contacts - if token is invalid, the API will return 401
+  fetch(`${API_URL}/api/contact`, {
     headers: { 'Authorization': `Bearer ${adminToken}` }
   })
-  .then(r => r.json())
+  .then(r => {
+    if (r.status === 401) {
+      // Token is invalid, clear it and show auth required
+      TokenManager.clearToken();
+      throw new Error('Authentication required');
+    }
+    return r.json();
+  })
   .then(contacts => {
     tab.innerHTML = '';
     
@@ -1798,8 +2009,23 @@ async function renderContacts() {
     setupContactEventListeners();
   })
   .catch(err => {
-    tab.innerHTML = '<p class="error">Failed to load contacts. Please try again.</p>';
-    console.error('Failed to load contacts:', err);
+    if (err.message === 'Authentication required') {
+      tab.innerHTML = `
+        <div class="auth-required">
+          <div class="auth-icon">
+            <ion-icon name="lock-closed-outline"></ion-icon>
+          </div>
+          <h3>Authentication Required</h3>
+          <p>Please enter your admin token to view contact messages.</p>
+          <button class="btn-primary auth-btn" onclick="requestTokenForContacts()">
+            <ion-icon name="key-outline"></ion-icon>
+            Enter Admin Token
+          </button>
+        </div>
+      `;
+    } else {
+      tab.innerHTML = '<p class="error">Failed to load contacts. Please try again.</p>';
+    }
   });
 }
 
@@ -1828,13 +2054,11 @@ function setupContactEventListeners() {
 
 // Mark contact as read
 async function markContactRead(contactId) {
-  if (!adminToken) {
-    const token = await requestAdminToken();
-    if (!token) return;
-  }
+  const validToken = await TokenManager.ensureValidToken();
+  if (!validToken) return;
   
   try {
-    const response = await fetch(`${API_URL}/api/contacts/${contactId}/read`, {
+    const response = await fetch(`${API_URL}/api/contact/${contactId}/read`, {
       method: 'PATCH',
       headers: { 'Authorization': `Bearer ${adminToken}` }
     });
@@ -1849,15 +2073,13 @@ async function markContactRead(contactId) {
     }
   } catch (err) {
     customAlert('Network Error', 'Error marking contact as read. Please check your connection.', 'error');
-    console.error(err);
   }
 }
 
 // Request token for contacts
 async function requestTokenForContacts() {
-  const token = await requestAdminToken();
-  if (token) {
-    adminToken = token;
+  const validToken = await TokenManager.ensureValidToken();
+  if (validToken) {
     renderContacts(); // Re-render contacts with token
     showNotification('Success', 'Authentication successful! Loading contacts...', 'success');
   }
@@ -1873,13 +2095,11 @@ async function deleteContact(contactId) {
   );
   if (!confirmed) return;
   
-  if (!adminToken) {
-    const token = await requestAdminToken();
-    if (!token) return;
-  }
+  const validToken = await TokenManager.ensureValidToken();
+  if (!validToken) return;
   
   try {
-    const response = await fetch(`${API_URL}/api/contacts/${contactId}`, {
+    const response = await fetch(`${API_URL}/api/contact/${contactId}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${adminToken}` }
     });
@@ -1894,7 +2114,6 @@ async function deleteContact(contactId) {
     }
   } catch (err) {
     customAlert('Network Error', 'Error deleting contact. Please check your connection.', 'error');
-    console.error(err);
   }
 }
 
