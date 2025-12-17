@@ -905,7 +905,7 @@ function renderDashboard() {
   
   // Setup quick action buttons
   document.querySelectorAll('[data-action]').forEach(btn => {
-    btn.onclick = (e) => {
+    btn.onclick = async (e) => {
       e.preventDefault();
       e.stopPropagation();
       
@@ -916,19 +916,21 @@ function renderDashboard() {
         case 'add-project':
           switchToTab('projects');
           // Trigger add project after ensuring content is rendered
-          setTimeout(() => {
+          setTimeout(async () => {
             if (!content.projects) content.projects = [];
             content.projects.unshift({title:'',category:'',type:'',image:'',alt:'',link:''}); // Add to beginning
             renderProjects();
+            await saveContent(); // Auto-save after addition
             showNotification('Success', 'New project form added at top', 'success');
           }, 200);
           break;
         case 'add-testimonial':
           switchToTab('testimonials');
-          setTimeout(() => {
+          setTimeout(async () => {
             if (!content.testimonials) content.testimonials = [];
             content.testimonials.unshift({avatar:'',name:'',text:''}); // Add to beginning
             renderTestimonials();
+            await saveContent(); // Auto-save after addition
             showNotification('Success', 'New testimonial form added at top', 'success');
           }, 200);
           break;
@@ -1355,12 +1357,13 @@ function renderServices() {
   add.type = 'button';
   add.className = 'add-btn';
   add.innerHTML = '<ion-icon name="add-outline"></ion-icon> Add Service';
-  add.onclick = (e) => { 
+  add.onclick = async (e) => { 
     e.preventDefault();
     e.stopPropagation();
 
     (content.services = content.services||[]).unshift({icon:'',title:'',text:''}); // Add to beginning
-    renderServices(); 
+    renderServices();
+    await saveContent(); // Auto-save after addition
     showNotification('Success', 'New service form added at top', 'success');
   };
   
@@ -1391,7 +1394,8 @@ function renderServices() {
       );
       if (confirmed) {
         content.services.splice(i,1); 
-        renderServices(); 
+        renderServices();
+        await saveContent(); // Auto-save after deletion
         showNotification('Success', 'Service removed successfully', 'success');
       }
     };
@@ -1418,12 +1422,13 @@ function renderProjects() {
   add.type = 'button';
   add.className = 'add-btn';
   add.innerHTML = '<ion-icon name="add-outline"></ion-icon> Add Project';
-  add.onclick = (e) => { 
+  add.onclick = async (e) => { 
     e.preventDefault();
     e.stopPropagation();
 
     (content.projects = content.projects||[]).unshift({title:'',category:'',type:'',image:'',alt:'',link:''}); // Add to beginning
-    renderProjects(); 
+    renderProjects();
+    await saveContent(); // Auto-save after addition
     showNotification('Success', 'New project form added at top', 'success');
   };
   
@@ -1503,12 +1508,13 @@ function renderTestimonials() {
   add.type = 'button';
   add.className = 'add-btn';
   add.innerHTML = '<ion-icon name="add-outline"></ion-icon> Add Testimonial';
-  add.onclick = (e) => { 
+  add.onclick = async (e) => { 
     e.preventDefault();
     e.stopPropagation();
 
     (content.testimonials = content.testimonials||[]).unshift({avatar:'',name:'',text:''}); // Add to beginning
-    renderTestimonials(); 
+    renderTestimonials();
+    await saveContent(); // Auto-save after addition
     showNotification('Success', 'New testimonial form added at top', 'success');
   };
   
@@ -1642,12 +1648,13 @@ function renderCertificates() {
   add.type = 'button';
   add.className = 'add-btn';
   add.innerHTML = '<ion-icon name="add-outline"></ion-icon> Add Certificate';
-  add.onclick = (e) => { 
+  add.onclick = async (e) => { 
     e.preventDefault();
     e.stopPropagation();
 
     (content.certificates = content.certificates||[]).unshift({logo:'',alt:''}); // Add to beginning
-    renderCertificates(); 
+    renderCertificates();
+    await saveContent(); // Auto-save after addition
     showNotification('Success', 'New certificate form added at top', 'success');
   };
   
@@ -1705,12 +1712,13 @@ function renderEducation() {
   add.type = 'button';
   add.className = 'add-btn';
   add.innerHTML = '<ion-icon name="add-outline"></ion-icon> Add Education';
-  add.onclick = (e) => { 
+  add.onclick = async (e) => { 
     e.preventDefault();
     e.stopPropagation();
 
     (content.education = content.education||[]).unshift({school:'',years:'',text:''}); // Add to beginning
-    renderEducation(); 
+    renderEducation();
+    await saveContent(); // Auto-save after addition
     showNotification('Success', 'New education form added at top', 'success');
   };
   
@@ -1777,12 +1785,13 @@ function renderExperience() {
   add.type = 'button';
   add.className = 'add-btn';
   add.innerHTML = '<ion-icon name="add-outline"></ion-icon> Add Experience';
-  add.onclick = (e) => { 
+  add.onclick = async (e) => { 
     e.preventDefault();
     e.stopPropagation();
 
     (content.experience = content.experience||[]).unshift({title:'',company:'',years:'',text:''}); // Add to beginning
-    renderExperience(); 
+    renderExperience();
+    await saveContent(); // Auto-save after addition
     showNotification('Success', 'New experience form added at top', 'success');
   };
   
@@ -1850,12 +1859,13 @@ function renderSkills() {
   add.type = 'button';
   add.className = 'add-btn';
   add.innerHTML = '<ion-icon name="add-outline"></ion-icon> Add Skill';
-  add.onclick = (e) => { 
+  add.onclick = async (e) => { 
     e.preventDefault();
     e.stopPropagation();
 
     (content.skills = content.skills||[]).unshift({name:'',value:0}); // Add to beginning
-    renderSkills(); 
+    renderSkills();
+    await saveContent(); // Auto-save after addition
     showNotification('Success', 'New skill form added at top', 'success');
   };
   
@@ -2539,11 +2549,12 @@ function renderSettings() {
   addSocial.type = 'button';
   addSocial.className = 'add-btn';
   addSocial.innerHTML = '<ion-icon name="add-outline"></ion-icon> Add Social Link';
-  addSocial.onclick = (e) => { 
+  addSocial.onclick = async (e) => { 
     e.preventDefault();
     e.stopPropagation();
     (content.socialMedia = content.socialMedia||[]).unshift({platform:'',url:'',icon:''}); 
-    renderSettings(); 
+    renderSettings();
+    await saveContent(); // Auto-save after addition
     showNotification('Success', 'New social media form added at top', 'success');
   };
   
