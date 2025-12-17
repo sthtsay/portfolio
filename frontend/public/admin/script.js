@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000';
+const API_URL = 'https://portfolio-thk4.onrender.com';
 let adminToken = localStorage.getItem('admin-jwt-token');
 
 // JWT Token Management
