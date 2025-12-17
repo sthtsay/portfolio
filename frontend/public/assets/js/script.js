@@ -1,5 +1,5 @@
 // Backend URL for API and socket.io
-const BACKEND_URL = 'http://localhost:3000';
+const BACKEND_URL = 'https://portfolio-thk4.onrender.com';
 
 'use strict';
 
