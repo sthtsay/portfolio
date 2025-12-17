@@ -1,5 +1,5 @@
 // Backend URL for API and socket.io
-const BACKEND_URL = 'https://portfolio-505u.onrender.com';
+const BACKEND_URL = 'http://localhost:3000';
 
 'use strict';
 
@@ -79,21 +79,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Function to fetch and render content
   function fetchAndRenderContent() {
-    console.log('🔄 Fetching content from:', BACKEND_URL + '/content.json');
-    
     fetch(BACKEND_URL + '/content.json')
       .then(response => {
-        console.log('📡 Content fetch response status:', response.status);
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         return response.json();
       })
       .then(content => {
-        console.log('✅ Content loaded successfully. Projects count:', content.projects?.length || 0);
-        if (content.projects) {
-          console.log('📋 Projects:', content.projects.map(p => p.title));
-        }
         if (loadingDiv) loadingDiv.remove();
         // ABOUT
         if (document.getElementById('about-name')) {
@@ -319,7 +312,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         // PROJECTS - Render all projects into a single unified grid
-        console.log('🎯 Rendering all projects into unified grid');
         
         // Get the main project container (we'll use the first one)
         const mainProjectList = document.getElementById('python-projects-list');
@@ -352,7 +344,6 @@ document.addEventListener("DOMContentLoaded", function () {
             `).join('');
             
             mainProjectList.innerHTML = html;
-            console.log(`📝 Rendered ${content.projects.length} projects to unified grid`);
           } else {
             // Show empty state
             mainProjectList.innerHTML = `
@@ -372,14 +363,11 @@ document.addEventListener("DOMContentLoaded", function () {
         const filterFunc = function (selectedValue) {
           const normalizedValue = selectedValue.trim().toLowerCase();
           
-          console.log('🔍 Filtering by:', normalizedValue);
-          
           if (normalizedValue === "all") {
             // Show all project items
             filterItems.forEach(item => {
               item.classList.add("active");
             });
-            console.log('📋 Showing all projects');
           } else {
             // Show only matching items
             filterItems.forEach(item => {
@@ -390,7 +378,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 item.classList.remove("active");
               }
             });
-            console.log('📋 Filtered to:', normalizedValue);
           }
         };
         // Attach filter button listeners again (in case they were lost)
@@ -455,7 +442,7 @@ document.addEventListener("DOMContentLoaded", function () {
             projectCounts[type] = (projectCounts[type] || 0) + 1;
           });
           
-          console.log('📊 Project counts by type:', projectCounts);
+
           
           // Update filter buttons
           filterButtons.forEach(btn => {
@@ -474,10 +461,8 @@ document.addEventListener("DOMContentLoaded", function () {
             
             if (projectType && projectCounts[projectType] > 0) {
               btn.parentElement.style.display = 'block';
-              console.log(`✅ Showing filter: ${buttonText} (${projectCounts[projectType]} projects)`);
             } else {
               btn.parentElement.style.display = 'none';
-              console.log(`❌ Hiding filter: ${buttonText} (0 projects)`);
             }
           });
           
@@ -519,11 +504,9 @@ document.addEventListener("DOMContentLoaded", function () {
         updateFilterButtonVisibility();
         
         // Trigger "All" filter to show all projects
-        console.log('🎯 Triggering "All" filter to show all projects');
         filterFunc('all');
       })
       .catch((error) => {
-        console.error('❌ Failed to load content:', error);
         hideLoading();
         
         // Show user-friendly error message
@@ -563,8 +546,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const script = document.createElement('script');
   script.src = BACKEND_URL + '/socket.io/socket.io.js';
   script.onload = function() {
-    console.log('Socket.io script loaded, attempting connection to:', BACKEND_URL);
-    
     try {
       const socket = io(BACKEND_URL, {
         transports: ['websocket', 'polling'],
@@ -573,7 +554,6 @@ document.addEventListener("DOMContentLoaded", function () {
       });
       
       socket.on('connect', () => {
-        console.log('✅ Socket.io connected successfully to backend');
         
         // Show connection success notification
         const notification = document.createElement('div');
@@ -599,12 +579,10 @@ document.addEventListener("DOMContentLoaded", function () {
       });
       
       socket.on('connect_error', (error) => {
-        console.error('❌ Socket.io connection error:', error);
+        // Connection error handled silently
       });
       
       socket.on('content-updated', (data) => {
-        console.log('📢 Content updated event received:', data);
-        
         // Show notification to user
         const notification = document.createElement('div');
         notification.style.cssText = `
@@ -623,7 +601,6 @@ document.addEventListener("DOMContentLoaded", function () {
         document.body.appendChild(notification);
         
         // Refresh content
-        console.log('🔄 Refreshing content...');
         fetchAndRenderContent();
         
         // Remove notification after 3 seconds
@@ -633,20 +610,20 @@ document.addEventListener("DOMContentLoaded", function () {
       });
       
       socket.on('disconnect', (reason) => {
-        console.log('🔌 Socket.io disconnected from backend. Reason:', reason);
+        // Handle disconnect silently
       });
       
       socket.on('reconnect', (attemptNumber) => {
-        console.log('🔄 Socket.io reconnected after', attemptNumber, 'attempts');
+        // Handle reconnect silently
       });
       
     } catch (error) {
-      console.error('❌ Failed to initialize Socket.io:', error);
+      // Socket.io initialization failed silently
     }
   };
   
   script.onerror = function() {
-    console.error('❌ Failed to load Socket.io script from:', BACKEND_URL + '/socket.io/socket.io.js');
+    // Socket.io script loading failed silently
   };
   
   document.head.appendChild(script);
@@ -672,7 +649,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const modalText = document.querySelector("[data-modal-text]");
 
     if (!modalContainer || !modalCloseBtn || !overlay) {
-      console.log('Modal elements not found');
       return;
     }
 
@@ -683,24 +659,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Add event listeners to testimonial items
     const newTestimonialsItems = document.querySelectorAll("[data-testimonials-item]");
-    console.log('Found testimonial items:', newTestimonialsItems.length);
     
     newTestimonialsItems.forEach((item, index) => {
       item.addEventListener("click", function () {
-        console.log('Testimonial clicked:', index);
-        
         const avatar = this.querySelector("[data-testimonials-avatar]");
         const title = this.querySelector("[data-testimonials-title]");
         const text = this.querySelector("[data-testimonials-text]");
-        
-        console.log('Modal elements found:', {
-          avatar: !!avatar,
-          title: !!title,
-          text: !!text,
-          modalImg: !!modalImg,
-          modalTitle: !!modalTitle,
-          modalText: !!modalText
-        });
         
         if (avatar && title && text && modalImg && modalTitle && modalText) {
           modalImg.src = avatar.src;
@@ -708,14 +672,7 @@ document.addEventListener("DOMContentLoaded", function () {
           modalTitle.innerHTML = title.innerHTML;
           modalText.innerHTML = text.innerHTML;
 
-          console.log('Opening modal with:', {
-            name: title.innerHTML,
-            text: text.innerHTML.substring(0, 50) + '...'
-          });
-
           testimonialsModalFunc();
-        } else {
-          console.error('Missing modal elements');
         }
       });
     });

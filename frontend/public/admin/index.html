@@ -21,6 +21,10 @@
           <div class="info-content">
             <h1 class="admin-name">Admin Panel</h1>
             <p class="admin-role">Portfolio Manager</p>
+            <div class="token-status" id="token-status">
+              <span class="status-indicator"></span>
+              <span class="status-text">Checking auth...</span>
+            </div>
           </div>
         </div>
 
@@ -281,7 +285,7 @@
       <div class="modal-content">
         <h2>Enter Admin Token</h2>
         <p>Please provide the admin token to proceed.</p>
-        <input type="password" id="token-input" placeholder="Admin Token" />
+        <input type="password" id="token-input" placeholder="Admin Token" autocomplete="off" />
         <div class="modal-actions">
           <button id="token-submit-btn">Submit</button>
           <button id="token-cancel-btn">Cancel</button>

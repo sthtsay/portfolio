@@ -427,6 +427,49 @@ textarea.form-input {
   margin-bottom: 25px;
 }
 
+/* Larger textarea for about description */
+textarea[name="about-description"] {
+  min-height: 250px;
+  /* height: 300px; */
+  max-height: 500px;
+}
+
+/* Token status indicator */
+.token-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--orange-yellow-crayola);
+  animation: pulse 2s infinite;
+}
+
+.status-indicator.authenticated {
+  background: #4CAF50;
+  animation: none;
+}
+
+.status-indicator.expired {
+  background: #f44336;
+  animation: none;
+}
+
+.status-text {
+  color: var(--light-gray-70);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
 .input-wrapper {
   display: grid;
   grid-template-columns: 1fr 1fr;
